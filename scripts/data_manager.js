@@ -1,7 +1,7 @@
 var QueryManager = require('./query_manager')
 
 var get_topics = function (callback) {
-  console.log('DataManager#get_topics')
+  // console.log('DataManager#get_topics')
   var categories = []
 
   QueryManager.meta('tabular', 'list', 'verbose', function(data) { 
@@ -15,7 +15,7 @@ var get_topics = function (callback) {
 
 
 var get_tables = function (category, callback) {
-  console.log( 'DataManager#get_tables' )
+  // console.log( 'DataManager#get_tables' )
   var tables = []
 
   QueryManager.meta('tabular', 'list', 'verbose', function(data) { 
@@ -31,7 +31,7 @@ var get_tables = function (category, callback) {
 
 
 var get_fields = function (args) {
-  console.log('DataManager#get_fields')
+  // console.log('DataManager#get_fields')
   var table    = args['table'],
       callback = args['callback']
   
@@ -41,7 +41,7 @@ var get_fields = function (args) {
 }
 
 var get_geographies = function (args) {
-  console.log('DataManager#get_fields')
+  // console.log('DataManager#get_fields')
   var table    = args['table'],
       callback = args['callback']
   
@@ -52,8 +52,9 @@ var get_geographies = function (args) {
 
 
 var get = function (args) {
-  console.log('DataManager#get')
-  console.log('GET'+ args['data'] +' where '+ args['from'] +' = '+ args['using'] +'.' ) }
+  // console.log('DataManager#get')
+  // console.log('GET'+ args['data'] +' where '+ args['from'] +' = '+ args['using'] +'.' )
+}
 
 
 module.exports = {

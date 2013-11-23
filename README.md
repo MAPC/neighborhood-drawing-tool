@@ -2,6 +2,7 @@
 
 ## What it is
 
++ Choose what data you want to study.
 + Draw a polygon or circle on a map.
 + Get a beautiful map of your study area.
 + Produce a report of various characteristics of your study area.

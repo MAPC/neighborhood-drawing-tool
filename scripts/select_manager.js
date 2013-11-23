@@ -17,6 +17,7 @@
 //                          , from:    args['changed'] 
 //                         }) }
 
+// var populate_next = function()
 
 // SelectManager.populate = function (args) {
 //   console.log('SelectManager#populate with args: ' + args)
@@ -37,11 +38,13 @@ var generate_options = function (pairs, opts) {
     , options = []
   console.log("pairs")
   console.log(pairs)
+  console.log('text:'+ text +', value:' + value)
   if (_.isString(pairs[0])) {
     pairs = pairs_from_array(pairs) }
   else if (_.isObject(pairs[0])) {
     pairs = pairs_from_objects({ objects: pairs, text: text, value: value }) 
-    console.log(pairs) }
+    // console.log(pairs) 
+  }
 
 
   options.push('<option value="">' + placeholder + '</option>')
