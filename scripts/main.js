@@ -31,35 +31,7 @@ DataManager.get_geographies({table: 'means_transportation_to_work_by_residence',
 }})
 
 
-var populate_next = function (obj) {
-  var value = obj.val()
-    , next  = obj.next()
-    , id    = obj.attr('id')
-    , opts  = {}
 
-  // console.log('populate_next with ') ; console.log( obj )
-  // console.log('value ' + value)      ; console.log('id ' + id)
-  // console.log('next ')               ; console.log(next)
-
-  switch (id) {
-    case 'topic':
-      opts = {text: 'title', value: 'name'}
-      DataManager.get_tables(value, function (pairs) {
-        next.html( SelectManager.generate_options(pairs, opts) )
-      })
-      break;
-    case 'table':
-      opts = {text: 'alias', value: 'field_name'}
-      DataManager.get_fields({ table: value, callback: function (pairs) {
-        next.html( SelectManager.generate_options(pairs, opts) )
-      }})
-      opts_geo = {text: 'name', value: 'key'}
-      DataManager.get_geographies({table: value, callback: function (pairs) {
-        next.next().html( SelectManager.generate_options(pairs, opts_geo) )
-      }})
-      break;
-  }
-}
 
 
 // DataManager.get_fields({table: table, callback: function (fields) {
@@ -71,7 +43,7 @@ var populate_next = function (obj) {
 // }
 
 $('select').on('change', function() {
-  populate_next( $(this) ) })
+  SelectManager.populate_next( $(this) ) })
 
 
 

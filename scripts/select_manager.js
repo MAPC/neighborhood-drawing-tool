@@ -1,3 +1,5 @@
+var DataManager = require('./data_manager')
+
 // SelectManager.init = function () {
 //   var topic     = $('select#topic')
 //     , table     = $('select#table')
@@ -79,7 +81,38 @@ var options_from_hash = function (pairs, opts) {
   return options
 }
 
+var populate_next = function (obj) {
+  var value = obj.val()
+    , next  = obj.next()
+    , id    = obj.attr('id')
+    , opts  = {}
+
+  // console.log('populate_next with ') ; console.log( obj )
+  // console.log('value ' + value)      ; console.log('id ' + id)
+  // console.log('next ')               ; console.log(next)
+
+  switch (id) {
+    case 'topic':
+      opts = {text: 'title', value: 'name'}
+      DataManager.get_tables(value, function (pairs) {
+        next.html( generate_options(pairs, opts) )
+      })
+      break;
+    case 'table':
+      opts = {text: 'alias', value: 'field_name'}
+      DataManager.get_fields({ table: value, callback: function (pairs) {
+        next.html( generate_options(pairs, opts) )
+      }})
+      opts_geo = {text: 'name', value: 'key'}
+      DataManager.get_geographies({table: value, callback: function (pairs) {
+        next.next().html( generate_options(pairs, opts_geo) )
+      }})
+      break;
+  }
+}
+
 
 module.exports = {
     generate_options:  generate_options
+  , populate_next: populate_next
 }
