@@ -62,18 +62,26 @@ var tiles  = L.tileLayer('http://tiles.mapc.org/basemap/{z}/{x}/{y}.png', {
   // , tiles2 = L.tileLayer('http://tiles.mapc.org/basemap/{z}/{x}/{y}.png', {
   //             attribution: 'Tiles by <a href="http://www.mapc.org/">MAPC</a>.' })
 
-var baseLayers = {
-  "MAPC Basemap": tiles,
-  // "MAPC": tiles2
-}
-
 var map = L.map('map', {
     center: new L.LatLng(42.4, -71.8)
   , zoom: 11
   , layers: tiles
 })
 
-var layer_control = L.control.layers(baseLayers).addTo(map)
+var base_layers = {
+  "MAPC Basemap": tiles,
+  // "MAPC": tiles2
+}
+
+var extent_layer = L.layerGroup().addTo(map),
+    study_layer  = L.layerGroup().addTo(map)
+
+var over_layers = {
+  "Map Extent": extent_layer,
+  "Study Area": study_layer
+}
+
+var layer_control = L.control.layers(base_layers, over_layers).addTo(map)
 
 
 
@@ -143,7 +151,9 @@ var get_layer = function(args) {
     , success: function (data) {
         console.log('global#get_layer: success. Now, the data:')
         console.log(data) 
-        L.geoJson(data).addTo(map) }
+        var the_layer = L.geoJson(data)
+        extent_layer.clearLayers()
+        extent_layer.addLayer(the_layer) }
     , error: function(e) {
         console.log("ERROR")
         console.log(e) } })
