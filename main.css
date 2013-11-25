@@ -2,3 +2,23 @@ select {
   clear: both;
   margin: 20px;
 }
+
+#map {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  left: 0;
+  right: 0;
+}
+
+#control {
+  /*display: none;*/
+  position: fixed;
+  top: 10px;
+  left: 60px;
+  right: 60px;
+  height: auto;
+  padding: 0px 10px;
+  background-color: rgba(255,255,255,0.6);
+  z-index: 1000;
+}

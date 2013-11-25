@@ -46,6 +46,39 @@ $('select').on('change', function() {
   SelectManager.populate_next( $(this) ) })
 
 
+var mapc_url    = 'http://tiles.mapc.org/basemap/{z}/{x}/{y}.png'
+  , mapc_attrib = 'Tiles by <a href="http://www.mapc.org/">MAPC</a>.'
+
+
+// var hey = L.tileLayer('http://{s}.tile.cloudmade.com/{key}/{styleId}/256/{z}/{x}/{y}.png', {
+//     key: 'd4fc77ea4a63471cab2423e66626cbb6',
+//     attribution: '&copy; <a href="http://openstreetmap.org/copyright">OpenStreetMap</a> contributors',
+//     styleId: 22677
+//   });
+
+
+var tiles  = L.tileLayer('http://tiles.mapc.org/basemap/{z}/{x}/{y}.png', {
+              attribution: 'Tiles by <a href="http://www.mapc.org/">Metropolitan Area Planning Council</a>.' })
+  // , tiles2 = L.tileLayer('http://tiles.mapc.org/basemap/{z}/{x}/{y}.png', {
+  //             attribution: 'Tiles by <a href="http://www.mapc.org/">MAPC</a>.' })
+
+var baseLayers = {
+  "Metropolitan": tiles,
+  // "MAPC": tiles2
+}
+
+var map = L.map('map', {
+    center: new L.LatLng(42.4, -71.8)
+  , zoom: 11
+  , layers: tiles
+})
+
+var layer_control = L.control.layers(baseLayers).addTo(map)
+
+
+
+
+
 
 // map.on( 'load', function()     { Mediator.publish( 'map_loaded ') } )
 // map.on( 'moveend', function () { Mediator.publish( 'map_moved' ) } )
