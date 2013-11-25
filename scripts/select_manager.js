@@ -103,7 +103,7 @@ var populate_next = function (obj) {
       DataManager.get_fields({ table: value, callback: function (pairs) {
         next.html( generate_options(pairs, opts) )
       }})
-      opts_geo = {text: 'name', value: 'key'}
+      opts_geo = {text: 'title', value: 'name'}
       DataManager.get_geographies({table: value, callback: function (pairs) {
         next.next().html( generate_options(pairs, opts_geo) )
       }})
