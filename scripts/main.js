@@ -68,13 +68,14 @@ var map = L.map('map', {
   , layers: tiles
 })
 
+
 var base_layers = {
   "MAPC Basemap": tiles,
   // "MAPC": tiles2
 }
 
 var extent_layer = L.layerGroup().addTo(map),
-    study_layer  = L.layerGroup().addTo(map)
+    study_layer  = L.featureGroup().addTo(map)
 
 var over_layers = {
   "Map Extent": extent_layer,
@@ -84,10 +85,35 @@ var over_layers = {
 var layer_control = L.control.layers(base_layers, over_layers).addTo(map)
 
 
+// DRAW
 
-var table     = ''
-  , field     = ''
-  , geography = ''
+var draw_control = new L.Control.Draw({
+  draw: {
+    position: 'topleft',
+    polygon: {
+      title: 'Draw your neighborhood!',
+      allowIntersection: false,
+      drawError: {
+        color: '#b00b00',
+        timeout: 1000 },
+      shapeOptions: {
+        color: '#2255BB' },
+      showArea: true },
+    polyline: false,
+    marker: false },
+  edit: {
+    featureGroup: study_layer } });
+
+map.addControl(draw_control);
+
+
+
+
+
+var table      = ''
+  , field      = ''
+  , geography  = ''
+  , study_area = ''
 
 $('select#field').on('change', function () {
   console.log( 'table: ' + $('select#table').val() )
@@ -107,11 +133,9 @@ $('select#geography').on('change', function () {
   var geo = $(this).find(':selected')
   console.log(geo)
 
-  set_overlay({
-    geography: geo.val()
-  })
+  set_overlay({ geography: geo.val() })
+  // TODO: set_study_area
 })
-
 
 var set_overlay = function(args) {
   console.log('global#set_overlay')
@@ -127,8 +151,39 @@ var set_overlay = function(args) {
       table:     table
     , field:     field
     , geography: geography
-    , polygon:   L.rectangle( map.getBounds() ).toGeoJSON() })
+    , polygon:   L.rectangle( map.getBounds() ).toGeoJSON()
+    , add_to:    extent_layer })
+}
 
+
+map.on('draw:created', function (drawing) {
+  console.log('draw#created')
+  var polygon = drawing.layer
+  study_layer.addLayer( polygon )
+  set_study_area({ study_area: polygon })
+})
+
+map.on('draw:edited', function (drawing) {
+  console.log('draw#edited')
+})
+
+var set_study_area = function(args){
+  console.log('global#set_study_area')
+  if( args.table )      { table      = args.table }
+  if( args.field )      { field      = args.field }
+  if( args.geography )  { geography  = args.geography }
+  if( args.study_area ) { study_area = args.study_area }
+
+  if (typeof table === 'undefined' || typeof field === 'undefined' || typeof geography === 'undefined'){
+    console.log('throw error')
+  }
+
+  get_layer({
+      table:     table
+    , field:     field
+    , geography: geography
+    , polygon:   study_area.toGeoJSON()
+    , add_to:    study_layer }) 
 }
 
 // "TypeError: Cannot read property 'key' of undefined    at exports.dataset (/Users/mapcuser/Projects/datacommon-io/routes/geographic.js:46:23)    at callbacks (/Users/mapcuser/Projects/datacommon-io/node_modules/express/lib/router/index.js:164:37)    at param (/Users/mapcuser/Projects/datacommon-io/node_modules/express/lib/router/index.js:138:11)    at param (/Users/mapcuser/Projects/datacommon-io/node_modules/express/lib/router/index.js:135:11)    at param (/Users/mapcuser/Projects/datacommon-io/node_modules/express/lib/router/index.js:135:11)    at param (/Users/mapcuser/Projects/datacommon-io/node_modules/express/lib/router/index.js:135:11)    at pass (/Users/mapcuser/Projects/datacommon-io/node_modules/express/lib/router/index.js:145:5)    at nextRoute (/Users/mapcuser/Projects/datacommon-io/node_modules/express/lib/router/index.js:100:7)    at callbacks (/Users/mapcuser/Projects/datacommon-io/node_modules/express/lib/router/index.js:167:11)    at /Users/mapcuser/Projects/datacommon-io/app.js:41:3"
@@ -140,7 +195,7 @@ var get_layer = function(args) {
 
   var base_url = 'http://localhost:2474/geographic/spatial/'
     , url = base_url + args.geography + '/tabular/' + args.table + '/' + field + '/intersect'
-    , polygon = args.polygon || L.rectangle(map.getBounds()).toGeoJSON()
+    , polygon = args.polygon
 
   console.log(url)
 
@@ -151,9 +206,10 @@ var get_layer = function(args) {
     , success: function (data) {
         console.log('global#get_layer: success. Now, the data:')
         console.log(data) 
-        var the_layer = L.geoJson(data)
-        extent_layer.clearLayers()
-        extent_layer.addLayer(the_layer) }
+        args.add_to.clearLayers()
+        args.add_to.addLayer( L.geoJson(data) )
+        console.log(args.add_to.getLayers())
+      }
     , error: function(e) {
         console.log("ERROR")
         console.log(e) } })
