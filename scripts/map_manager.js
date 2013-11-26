@@ -1,7 +1,50 @@
-var table      = ''
-  , field      = ''
-  , geography  = ''
-  , study_area = ''
+
+var table, field, geography, study_area
+  , mapc_url     = 'http://tiles.mapc.org/basemap/{z}/{x}/{y}.png'
+  , mapc_attrib  = 'Tiles by <a href="http://www.mapc.org/">Metropolitan Area Planning Council</a>.'
+  , tiles        = L.tileLayer( mapc_url, { attribution: mapc_attrib } )
+  , extent_layer = new L.layerGroup()
+  , study_layer  = new L.featureGroup()
+  , base_layers  = { 
+      "MAPC Basemap": tiles }
+  , over_layers  = {
+      "Map Extent": extent_layer,
+      "Study Area": study_layer }
+
+var layer_control = L.control.layers(base_layers, over_layers)
+  , draw_control = new L.Control.Draw({
+      draw: {
+        position: 'topleft',
+        polygon: {
+          title: 'Draw your neighborhood!',
+          allowIntersection: false,
+          drawError: {
+            color: '#b00b00',
+            timeout: 1000 },
+          shapeOptions: {
+            color: '#2255BB' },
+          showArea: true },
+        polyline: false,
+        marker: false },
+      edit: {
+        featureGroup: study_layer } });
+
+var map = L.map('map', {
+      center: new L.LatLng(42.4, -71.8)
+    , zoom: 11
+    , layers: tiles })
+
+var init_map = function () {
+  return map
+}
+
+var establish_map = function (map) {
+  extent_layer.addTo(map)
+  study_layer.addTo(map)
+  layer_control.addTo(map)
+  map.addControl(draw_control)
+}
+
 
 var set_overlay = function(args) {
   console.log('global#set_overlay')
@@ -33,6 +76,8 @@ var set_study_area = function(args){
     console.log('throw error')
   }
 
+  study_layer.addLayer( study_area )
+
   get_layer({
       table:     table
     , field:     field
@@ -41,6 +86,19 @@ var set_study_area = function(args){
     , add_to:    study_layer }) 
 }
 
+
+
+// public interface
+
+module.exports = {
+    init_map:       init_map
+  , establish_map:  establish_map
+  , set_overlay:    set_overlay
+  , set_study_area: set_study_area }
+
+
+
+// private
 
 var get_layer = function(args) {
   console.log('global#get_layer')
