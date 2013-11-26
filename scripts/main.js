@@ -54,9 +54,13 @@ map.on('draw:edited', function (drawing) {
   console.log('draw#edited')  })
 
 
-map.on('moveend', function(){
+map.on('moveend', function () {
   MapManager.set_overlay({})  })
 
+
+map.on('zoomend', function () {
+  console.log( map.getZoom() )
+})
 
 
 
