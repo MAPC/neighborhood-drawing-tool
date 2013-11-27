@@ -70,10 +70,20 @@ map.on('moveend', function () {
 
 map.on('zoomend', function () {
   console.log( 'zoom: ' + map.getZoom() )
-  DataManager.get_geographies( $('select#table').val(), function (sumlevs) {
+
+  var callback = function (sumlevs) {
     console.log('summary levels: ' + sumlevs)
     var value = ZoomManager.appropriate_sumlev(map, sumlevs)
-    $("select#geography").val(value);
+    console.log(value)
+    $("select#geography").val(value)
+    $("select#geography").trigger('change')
+  }
+
+  var table = $('select#table').val()
+  console.log('table: ' + table)
+  DataManager.get_geographies({
+    table: table,
+    callback: callback
   })
 })
 
