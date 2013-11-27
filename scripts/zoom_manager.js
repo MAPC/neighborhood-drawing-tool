@@ -35,6 +35,7 @@ var appropriate_sumlev = function (map, sumlevs) {
 
     _.each(options, function(option) {
       // console.log('option: ' + option)
+      if (typeof return_value != 'undefined') return false
       _.forIn(sumlevs, function (sumlev, key) {
         // console.log('sumlev: ' + sumlev.name)
         if (sumlev.name === option) {
