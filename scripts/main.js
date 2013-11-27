@@ -9,6 +9,7 @@ var QueryManager  = require('./query_manager')
 var DataManager   = require('./data_manager')
 var SelectManager = require('./select_manager')
 var MapManager    = require('./map_manager')
+var ZoomManager   = require('./zoom_manager')
 
 
 DataManager.get_topics( function (topics) {
@@ -27,6 +28,13 @@ $('select#field').on('change', function () {
 
   geo.attr('selected', true) // select first geography
   
+  if ( MapManager.has_study_area() ) {
+    MapManager.set_study_area({
+      table:     $('select#table').val()
+    , field:     field
+    , geography: geo.val() })
+  }
+
   MapManager.set_overlay({
       table:     $('select#table').val()
     , field:     field
@@ -36,8 +44,10 @@ $('select#field').on('change', function () {
 
 $('select#geography').on('change', function () {
   var geo = $(this).find(':selected')
-  MapManager.set_overlay({ geography: geo.val() })  })
-
+  if ( MapManager.has_study_area() ) {
+    MapManager.set_study_area({ geography: geo.val() }) }
+  MapManager.set_overlay({ geography: geo.val() })  
+})
 
 
 
@@ -59,7 +69,12 @@ map.on('moveend', function () {
 
 
 map.on('zoomend', function () {
-  console.log( map.getZoom() )
+  console.log( 'zoom: ' + map.getZoom() )
+  DataManager.get_geographies( $('select#table').val(), function (sumlevs) {
+    console.log('summary levels: ' + sumlevs)
+    var value = ZoomManager.appropriate_sumlev(map, sumlevs)
+    $("select#geography").val(value);
+  })
 })
 
 

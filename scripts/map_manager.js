@@ -86,6 +86,12 @@ var set_study_area = function(args){
     , add_to:    study_layer }) 
 }
 
+var get_table = function () {
+  return table }
+
+var has_study_area = function () {
+  if (typeof study_area != 'undefined') { return true }
+  return false }
 
 
 // public interface
@@ -94,7 +100,8 @@ module.exports = {
     init_map:       init_map
   , establish_map:  establish_map
   , set_overlay:    set_overlay
-  , set_study_area: set_study_area }
+  , set_study_area: set_study_area
+  , has_study_area: has_study_area }
 
 
 
