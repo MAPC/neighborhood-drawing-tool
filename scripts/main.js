@@ -71,7 +71,7 @@ map.on('moveend', function () {
 map.on('zoomend', function () {
   console.log( 'zoom: ' + map.getZoom() )
 
-  var callback = function (sumlevs) {
+  var set_zoom_selects = function (sumlevs) {
     console.log('summary levels: ' + sumlevs)
     var value = ZoomManager.appropriate_sumlev(map, sumlevs)
     console.log(value)
@@ -83,7 +83,7 @@ map.on('zoomend', function () {
   console.log('table: ' + table)
   DataManager.get_geographies({
     table: table,
-    callback: callback
+    callback: set_zoom_selects
   })
 })
 

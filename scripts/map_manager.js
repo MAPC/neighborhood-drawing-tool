@@ -1,3 +1,4 @@
+var LegendManager = require('./legend_manager')
 
 var table, field, geography, study_area
   , mapc_url     = 'http://tiles.mapc.org/basemap/{z}/{x}/{y}.png'
@@ -10,6 +11,7 @@ var table, field, geography, study_area
   , over_layers  = {
       "Map Extent": extent_layer,
       "Study Area": study_layer }
+
 
 var layer_control = L.control.layers(base_layers, over_layers)
   , draw_control = new L.Control.Draw({
@@ -29,14 +31,17 @@ var layer_control = L.control.layers(base_layers, over_layers)
       edit: {
         featureGroup: study_layer } });
 
+
 var map = L.map('map', {
-      center: new L.LatLng(42.4, -71.8)
-    , zoom: 11
+      center: new L.LatLng(42.363364,-71.067494)
+    , zoom: 15
     , layers: tiles })
+
 
 var init_map = function () {
   return map
 }
+
 
 var establish_map = function (map) {
   extent_layer.addTo(map)
@@ -44,6 +49,9 @@ var establish_map = function (map) {
   layer_control.addTo(map)
   map.addControl(draw_control)
 }
+
+
+
 
 
 var set_overlay = function(args) {
@@ -86,8 +94,10 @@ var set_study_area = function(args){
     , add_to:    study_layer }) 
 }
 
+
 var get_table = function () {
   return table }
+
 
 var has_study_area = function () {
   if (typeof study_area != 'undefined') { return true }
@@ -101,9 +111,8 @@ module.exports = {
   , establish_map:  establish_map
   , set_overlay:    set_overlay
   , set_study_area: set_study_area
-  , has_study_area: has_study_area }
-
-
+  , has_study_area: has_study_area
+}
 
 // private
 
@@ -124,9 +133,10 @@ var get_layer = function(args) {
     , data: args.polygon.geometry
     , success: function (data) {
         console.log('global#get_layer: success. Now, the data:')
-        console.log(data) 
+        console.log(data)
         args.add_to.clearLayers()
         args.add_to.addLayer( L.geoJson(data) )
+        LegendManager.set_legend({ map: map, field: field, data: data })
       }
     , error: function(e) {
         console.log("ERROR")
