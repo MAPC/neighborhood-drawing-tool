@@ -1,3 +1,11 @@
+/*
+
+MapManager
+
+
+
+*/
+
 var LegendManager = require('./legend_manager')
 
 var table, field, geography, study_area
@@ -134,9 +142,9 @@ var get_layer = function(args) {
     , success: function (data) {
         console.log('global#get_layer: success. Now, the data:')
         console.log(data)
-        args.add_to.clearLayers()
-        args.add_to.addLayer( L.geoJson(data) )
         LegendManager.set_legend({ map: map, field: field, data: data })
+        args.add_to.clearLayers()
+        args.add_to.addLayer( L.geoJson( data, { style: LegendManager.style } ) )
       }
     , error: function(e) {
         console.log("ERROR")
