@@ -2,7 +2,7 @@
 var QueryManager = require('./query_manager')
 
 var get_topics = function (callback) {
-  console.log('DataManager#get_topics')
+  // console.log('DataManager#get_topics')
   var categories = []
 
   QueryManager.meta('tabular', 'list', 'verbose', function(data) { 
@@ -16,7 +16,7 @@ var get_topics = function (callback) {
 
 
 var get_tables = function (category, callback) {
-  console.log( 'DataManager#get_tables' )
+  // console.log( 'DataManager#get_tables' )
   var tables = []
 
   QueryManager.meta('tabular', 'list', 'verbose', function(data) { 
@@ -32,7 +32,7 @@ var get_tables = function (category, callback) {
 
 
 var get_fields = function (args) {
-  console.log('DataManager#get_fields')
+  // console.log('DataManager#get_fields')
   var table    = args['table'],
       callback = args['callback']
   
@@ -42,7 +42,7 @@ var get_fields = function (args) {
 }
 
 var get_geographies = function (args) {
-  console.log('DataManager#get_fields')
+  // console.log('DataManager#get_fields')
   var table    = args['table'],
       callback = args['callback']
   
@@ -53,8 +53,10 @@ var get_geographies = function (args) {
 
 
 var get = function (args) {
-  console.log('DataManager#get')
-  console.log('GET'+ args['data'] +' where '+ args['from'] +' = '+ args['using'] +'.' ) }
+  // console.log('DataManager#get')
+  // console.log('GET'+ args['data'] +' where '+ args['from'] +' = '+ args['using'] +'.' )
+}
+
 
 
 module.exports = {
@@ -63,35 +65,441 @@ module.exports = {
   , get_fields:  get_fields
   , get_geographies: get_geographies 
 }
-},{"./query_manager":3}],2:[function(require,module,exports){
-console.log('allo allo')
+},{"./query_manager":6}],2:[function(require,module,exports){
+/*
+
+LegendManager
+
+Creates and updates the legend, given the current dataset for the viewable map extent.
+
+Public interface: 
+  set_legend is passed the map, dataset, and field name being added to the extent.
+  style is passed the property of a GeoJSON feature for styling before MapManager adds it to the map.
+
+*/
+
+var legend = L.control({position: 'bottomright'})
+  , colors = [ '#FEFEFE'
+             , '#D0D1E6'
+             , '#A6BDDB'
+             , '#67A9CF'
+             , '#1C9099'
+             , '#016C59' ]
+  , breaks
+  , field
+
+
+var define_legend_breaks = function (data, field, callback) {
+  breaks = []
+  var intervals = 5
+    , arr = _.map(data.features, function(elem) { return parseFloat( elem.properties[field] ) } )
+    , max = _.max(arr)
+    , min = _.min(arr)
+    , dif = max-min
+    , div = dif/intervals
+
+  for (var i = 0; i <= intervals; i++ ) {
+    num = min + ( i * div )
+    num = parseFloat( num.toFixed(1) )
+    breaks.push( num ) }
+
+  if (callback) return callback(breaks)
+}
+
+
+
+var getBreakColor = function (breaks, prop) {
+
+    return prop > breaks[5] ? colors[5] : 
+           prop > breaks[4] ? colors[4] : 
+           prop > breaks[3] ? colors[3] : 
+           prop > breaks[2] ? colors[2] : 
+           prop > breaks[1] ? colors[1] :
+                              colors[0]
+
+}
+
+
+var style = function (feature) {
+  return {
+      fillColor: getBreakColor(breaks, feature.properties[field])
+    , fillOpacity: 0.45
+    , weight: 1
+    , color: '#BBB'
+    , opacity: 1
+  }
+}
+
+
+var set_legend = function (args) {
+  field = args['field']
+  var map   = args['map']
+  $('.info.legend').remove()
+
+  define_legend_breaks( args['data'], field, function (breaks) {
+    
+    legend.onAdd = function () {
+      var div    = L.DomUtil.create('div', 'info legend')
+        , labels = [];
+
+        // console.log('breaks inside')
+        // console.log(breaks)
+      
+      div.innerHTML = "<h4>Legend</h4>"
+      // loop through our intervals and generate a label with a colored square for each interval
+      for (var i = 0; i < breaks.length-1; i++) {
+        div.innerHTML +=
+          '<i style="background:' + getBreakColor(breaks, breaks[i] + 1) + '"></i> ' +
+          breaks[i] + (breaks[i + 1] ? '&ndash;' + breaks[i + 1] + '<br>' : '+') }
+
+      // console.log('this is the div: ')
+      // console.log(div)
+      return div
+    }
+
+    // console.log('legend')
+    // console.log(legend)
+
+    // console.log('map.hasLayer(legend)')
+    // console.log(map.hasLayer(legend))
+
+    // map.removeControl(legend)
+    legend.addTo(map)
+  })
+}
+
+
+module.exports = {
+    set_legend: set_legend
+  , style: style
+}
+},{}],3:[function(require,module,exports){
+var Mediator      = require('./mediator').mediator
 
 var QueryManager  = require('./query_manager')
 var DataManager   = require('./data_manager')
 var SelectManager = require('./select_manager')
+var MapManager    = require('./map_manager')
+var ZoomManager   = require('./zoom_manager')
 
 
 DataManager.get_topics( function (topics) {
-  $('select#topic').html( SelectManager.generate_options(topics) )
+  $('select#topic').html(
+    SelectManager.generate_options(topics) )  })
+
+
+$('select').on('change', function() {
+  SelectManager.populate_next( $(this) ) })
+
+
+$('select#field').on('change', function () {
+  var field = $(this).val()
+  var geo = $('select#geography option')[1],
+      geo = $(geo)
+
+  geo.attr('selected', true) // select first geography
+  
+  if ( MapManager.has_study_area() ) {
+    MapManager.set_study_area({
+      table:     $('select#table').val()
+    , field:     field
+    , geography: geo.val() })
+  }
+
+  MapManager.set_overlay({
+      table:     $('select#table').val()
+    , field:     field
+    , geography: geo.val() })
 })
 
-DataManager.get_tables('Transportation', function (tables) {
-  $('select#table').html( SelectManager.generate_options(tables, {text: 'title', value: 'name'}) )
+
+$('select#geography').on('change', function () {
+  var geo = $(this).find(':selected')
+  if ( MapManager.has_study_area() ) {
+    MapManager.set_study_area({ geography: geo.val() }) }
+  MapManager.set_overlay({ geography: geo.val() })  
 })
 
-DataManager.get_fields({table: 'means_transportation_to_work_by_residence', callback: function (fields) {
-  $('select#field').html( SelectManager.generate_options(fields, {text: 'alias', value: 'field_name'}) )
-}})
 
-DataManager.get_geographies({table: 'means_transportation_to_work_by_residence', callback: function (sumlevs) {
-  $('select#geography').html( SelectManager.generate_options(sumlevs, {text: 'name', value: 'key'}) )
-}})
-},{"./data_manager":1,"./query_manager":3,"./select_manager":4}],3:[function(require,module,exports){
+
+
+var map = MapManager.init_map()
+MapManager.establish_map(map)
+
+
+map.on('draw:created', function (drawing) {
+  MapManager.set_study_area({ study_area: drawing.layer })  })
+
+
+map.on('draw:edited', function (drawing) {
+  MapManager.set_study_area({ study_area: drawing.layer })  })
+
+
+map.on('moveend', function () {
+  MapManager.set_overlay({})  })
+
+
+map.on('zoomend', function () {
+  console.log( 'zoom: ' + map.getZoom() )
+
+  var set_zoom_selects = function (sumlevs) {
+    console.log('summary levels: ' + sumlevs)
+    var value = ZoomManager.appropriate_sumlev(map, sumlevs)
+    console.log(value)
+    $("select#geography").val(value)
+    $("select#geography").trigger('change')
+  }
+
+  var table = $('select#table').val()
+  console.log('table: ' + table)
+  DataManager.get_geographies({
+    table: table,
+    callback: set_zoom_selects
+  })
+})
+
+
+
+
+
+
+
+
+
+// This is more what I imagined but it did not turn out that way. VVV
+
+
+// map.on( 'load', function()     { Mediator.publish( 'map_loaded ') } )
+// map.on( 'moveend', function () { Mediator.publish( 'map_moved' ) } )
+// map.on( 'zoomend', function () { Mediator.publish( 'map_zoomed' ) } )
+
+// Mediator.subscribe( 'map_loaded', MapManager.init() )
+// Mediator.subscribe( 'map_moved',  MapManager.handle_move() )
+// Mediator.subscribe( 'map_zoomed', MapManager.handle_zoom() )
+
+
+// map.on( 'draw:create',  function (drawing) { Mediator.publish( 'figure_drawn' ) } )
+// map.on( 'draw:edited',  function (drawing) { Mediator.publish( 'figure_edited' ) } )
+// map.on( 'draw:deleted', function () { Mediator.publish( 'figure_deleted' ) } )
+
+// Mediator.subscribe( 'figure_drawn',   StudyAreaManager.handle_draw( drawing ) )
+// Mediator.subscribe( 'figure_edited',  StudyAreaManager.handle_edit( drawing ) )
+// Mediator.subscribe( 'figure_deleted', StudyAreaManager.handle_delete() )
+
+
+// $('select').on('change', function () {
+//   var self  = $(this),
+//       value = self.val() // TODO or something like this
+//   if (self.id === 'field') {
+//     Mediator.publish ( 'field_changed', value )
+//   } else {
+//     Mediator.publish( 'select_changed', {self: self, next: self.next(), value: value} ) }
+// })
+
+// Mediator.subscribe( 'select_changed', SelectManager.populate_next( args ) )
+// Mediator.subscribe( 'field_changed',  MapManager.change_field( field ) )
+
+},{"./data_manager":1,"./map_manager":4,"./mediator":5,"./query_manager":6,"./select_manager":7,"./zoom_manager":8}],4:[function(require,module,exports){
+/*
+
+MapManager
+
+
+
+*/
+
+var LegendManager = require('./legend_manager')
+
+var table, field, geography, study_area
+  , mapc_url     = 'http://tiles.mapc.org/basemap/{z}/{x}/{y}.png'
+  , mapc_attrib  = 'Tiles by <a href="http://www.mapc.org/">Metropolitan Area Planning Council</a>.'
+  , tiles        = L.tileLayer( mapc_url, { attribution: mapc_attrib } )
+  , extent_layer = new L.layerGroup()
+  , study_layer  = new L.featureGroup()
+  , drawing_layer = new L.featureGroup()
+  , base_layers  = { 
+      "MAPC Basemap": tiles }
+  , over_layers  = {
+      "Map Extent": extent_layer,
+      "Study Area": drawing_layer }
+
+
+var layer_control = L.control.layers(base_layers, over_layers)
+  , draw_control = new L.Control.Draw({
+      draw: {
+        position: 'topleft',
+        polygon: {
+          title: 'Draw your neighborhood!',
+          allowIntersection: false,
+          drawError: {
+            color: '#b00b00',
+            timeout: 1000 },
+          shapeOptions: {
+            color: '#2255BB' },
+          showArea: true },
+        polyline: false,
+        marker: false },
+      edit: {
+        featureGroup: drawing_layer } });
+
+
+var map = L.map('map', {
+      center: new L.LatLng(42.363364,-71.067494)
+    , zoom: 15
+    , layers: tiles })
+
+
+var init_map = function () {
+  return map
+}
+
+
+var establish_map = function (map) {
+  extent_layer.addTo(map)
+  study_layer.addTo(map)
+  drawing_layer.addTo(map)
+  layer_control.addTo(map)
+  map.addControl(draw_control)
+}
+
+
+
+
+
+var set_overlay = function(args) {
+  console.log('global#set_overlay')
+  if( args.table )     { table     = args.table }
+  if( args.field )     { field     = args.field }
+  if( args.geography ) { geography = args.geography }
+
+  if (typeof table === 'undefined' || typeof field === 'undefined' || typeof geography === 'undefined'){
+    console.log('throw error')
+  }
+
+  get_layer({
+      table:     table
+    , field:     field
+    , geography: geography
+    , polygon:   L.rectangle( map.getBounds() ).toGeoJSON()
+    , add_to:    extent_layer })
+}
+
+
+var set_study_area = function(args){
+  console.log('global#set_study_area')
+  if( args.table )      { table      = args.table }
+  if( args.field )      { field      = args.field }
+  if( args.geography )  { geography  = args.geography }
+  if( args.study_area ) { study_area = args.study_area }
+
+  if (typeof table === 'undefined' || typeof field === 'undefined' || typeof geography === 'undefined'){
+    console.log('throw error')
+  }
+
+  drawing_layer.addLayer( study_area )
+
+  get_layer({
+      table:     table
+    , field:     field
+    , geography: geography
+    , polygon:   study_area.toGeoJSON()
+    , add_to:    study_layer }) 
+}
+
+
+var get_table = function () {
+  return table }
+
+
+var has_study_area = function () {
+  if (typeof study_area != 'undefined') { return true }
+  return false }
+
+
+// public interface
+
+module.exports = {
+    init_map:       init_map
+  , establish_map:  establish_map
+  , set_overlay:    set_overlay
+  , set_study_area: set_study_area
+  , has_study_area: has_study_area
+}
+
+// private
+
+var get_layer = function(args) {
+  console.log('global#get_layer')
+  
+  // args.geography = 'ma_census_tracts'
+
+  var base_url = 'http://localhost:2474/geographic/spatial/'
+    , url = base_url + args.geography + '/tabular/' + args.table + '/' + field + '/intersect'
+    , polygon = args.polygon
+
+  console.log(url)
+
+  $.ajax({
+      url: url
+    , type: 'POST'
+    , data: args.polygon.geometry
+    , success: function (data) {
+        console.log('global#get_layer: success. Now, the data:')
+        console.log(data)
+        LegendManager.set_legend({ map: map, field: field, data: data })
+        args.add_to.clearLayers()
+        args.add_to.addLayer( L.geoJson( data, { style: LegendManager.style } ) )
+      }
+    , error: function(e) {
+        console.log("ERROR")
+        console.log(e) } })
+}
+
+},{"./legend_manager":2}],5:[function(require,module,exports){
+/*
+  
+  Mediator implementation
+  by Addy Osmani
+  http://addyosmani.com/largescalejavascript/
+
+*/
+
+var mediator = (function(){
+  var subscribe = function(channel, fn){
+    if (!mediator.channels[channel]) mediator.channels[channel] = [];
+    mediator.channels[channel].push({ context: this, callback: fn });
+    return this;
+  },
+ 
+  publish = function(channel){
+    if (!mediator.channels[channel]) return false;
+    var args = Array.prototype.slice.call(arguments, 1);
+    for (var i = 0, l = mediator.channels[channel].length; i < l; i++) {
+      var subscription = mediator.channels[channel][i];
+      subscription.callback.apply(subscription.context, args);
+    }
+    return this;
+  };
+ 
+  return {
+    channels: {},
+    publish: publish,
+    subscribe: subscribe,
+    installTo: function(obj){
+      obj.subscribe = subscribe;
+       obj.publish = publish;
+    }
+  };
+
+}());
+
+module.exports = { mediator: mediator }
+},{}],6:[function(require,module,exports){
 var api_base = 'http://localhost:2474'
 
 var meta = function () {
-  console.log('QueryManager#meta with args: ')
-  console.log(arguments)
+  // console.log('QueryManager#meta with args: ')
+  // console.log(arguments)
   var args = Array.prototype.slice.call(arguments);
   var callback = args.pop([args.length-1])
   query_path = '/' + args.join("/")
@@ -102,8 +510,8 @@ var meta = function () {
 
 var request = function(args) {
   var callback = args['callback']
-  console.log('QueryManager#request with args: ')
-  console.log(args)
+  // console.log('QueryManager#request with args: ')
+  // console.log(args)
   var base = args['api_base']   || api_base
     , path = args['path']       || '/'
     , opts = args['query_args'] || ''
@@ -111,13 +519,13 @@ var request = function(args) {
     , data = args['data']       || null
 
   var url = base + path + opts
-  console.log('url:' + url)
+  // console.log('url:' + url)
 
   $.ajax({
     url: url,
     type: type,
     success: function (data) {
-      console.log( 'SUCCESS: ' )
+      // console.log( 'SUCCESS: ' )
       // console.log( data )
       if (callback) callback(data)
       },
@@ -128,7 +536,9 @@ var request = function(args) {
 }
 
 module.exports = { meta: meta }
-},{}],4:[function(require,module,exports){
+},{}],7:[function(require,module,exports){
+var DataManager = require('./data_manager')
+
 // SelectManager.init = function () {
 //   var topic     = $('select#topic')
 //     , table     = $('select#table')
@@ -148,6 +558,7 @@ module.exports = { meta: meta }
 //                          , from:    args['changed'] 
 //                         }) }
 
+// var populate_next = function()
 
 // SelectManager.populate = function (args) {
 //   console.log('SelectManager#populate with args: ' + args)
@@ -168,11 +579,13 @@ var generate_options = function (pairs, opts) {
     , options = []
   console.log("pairs")
   console.log(pairs)
+  console.log('text:'+ text +', value:' + value)
   if (_.isString(pairs[0])) {
     pairs = pairs_from_array(pairs) }
   else if (_.isObject(pairs[0])) {
     pairs = pairs_from_objects({ objects: pairs, text: text, value: value }) 
-    console.log(pairs) }
+    // console.log(pairs) 
+  }
 
 
   options.push('<option value="">' + placeholder + '</option>')
@@ -207,10 +620,95 @@ var options_from_hash = function (pairs, opts) {
   return options
 }
 
+var populate_next = function (obj) {
+  var value = obj.val()
+    , next  = obj.next()
+    , id    = obj.attr('id')
+    , opts  = {}
+
+  // console.log('populate_next with ') ; console.log( obj )
+  // console.log('value ' + value)      ; console.log('id ' + id)
+  // console.log('next ')               ; console.log(next)
+
+  switch (id) {
+    case 'topic':
+      opts = {text: 'title', value: 'name'}
+      DataManager.get_tables(value, function (pairs) {
+        next.html( generate_options(pairs, opts) )
+      })
+      break;
+    case 'table':
+      opts = {text: 'alias', value: 'field_name'}
+      DataManager.get_fields({ table: value, callback: function (pairs) {
+        next.html( generate_options(pairs, opts) )
+      }})
+      opts_geo = {text: 'title', value: 'name'}
+      DataManager.get_geographies({table: value, callback: function (pairs) {
+        next.next().html( generate_options(pairs, opts_geo) )
+      }})
+      break;
+  }
+}
+
 
 module.exports = {
     generate_options:  generate_options
+  , populate_next: populate_next
 }
-},{}]},{},[2])
-//@ sourceMappingURL=data:application/json;base64,eyJ2ZXJzaW9uIjozLCJmaWxlIjoiZ2VuZXJhdGVkLmpzIiwic291cmNlcyI6WyIvVXNlcnMvbWFwY3VzZXIvUHJvamVjdHMvbmVpZ2hib3Job29kLWRyYXdpbmctdG9vbC9zY3JpcHRzL2RhdGFfbWFuYWdlci5qcyIsIi9Vc2Vycy9tYXBjdXNlci9Qcm9qZWN0cy9uZWlnaGJvcmhvb2QtZHJhd2luZy10b29sL3NjcmlwdHMvbWFpbi5qcyIsIi9Vc2Vycy9tYXBjdXNlci9Qcm9qZWN0cy9uZWlnaGJvcmhvb2QtZHJhd2luZy10b29sL3NjcmlwdHMvcXVlcnlfbWFuYWdlci5qcyIsIi9Vc2Vycy9tYXBjdXNlci9Qcm9qZWN0cy9uZWlnaGJvcmhvb2QtZHJhd2luZy10b29sL3NjcmlwdHMvc2VsZWN0X21hbmFnZXIuanMiXSwibmFtZXMiOltdLCJtYXBwaW5ncyI6IjtBQUFBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBOztBQy9EQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTs7QUNyQkE7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTs7QUN4Q0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0EiLCJzb3VyY2VzQ29udGVudCI6WyJ2YXIgUXVlcnlNYW5hZ2VyID0gcmVxdWlyZSgnLi9xdWVyeV9tYW5hZ2VyJylcblxudmFyIGdldF90b3BpY3MgPSBmdW5jdGlvbiAoY2FsbGJhY2spIHtcbiAgY29uc29sZS5sb2coJ0RhdGFNYW5hZ2VyI2dldF90b3BpY3MnKVxuICB2YXIgY2F0ZWdvcmllcyA9IFtdXG5cbiAgUXVlcnlNYW5hZ2VyLm1ldGEoJ3RhYnVsYXInLCAnbGlzdCcsICd2ZXJib3NlJywgZnVuY3Rpb24oZGF0YSkgeyBcbiAgICAvLyBjb25zb2xlLmxvZyggJ1F1ZXJ5TWFuYWdlciNtZXRhIHdpdGggZGF0YTogJyArIGRhdGEgKVxuICAgIFxuICAgIF8uZm9yRWFjaChkYXRhLCBmdW5jdGlvbiAodGFibGUpIHtcbiAgICAgIGNhdGVnb3JpZXMucHVzaCh0YWJsZVsnY2F0ZWdvcnknXSkgfSlcbiAgICBpZiAoY2FsbGJhY2spIHsgY2FsbGJhY2soIF8udW5pcXVlKGNhdGVnb3JpZXMpICkgfVxuICB9KVxufVxuXG5cbnZhciBnZXRfdGFibGVzID0gZnVuY3Rpb24gKGNhdGVnb3J5LCBjYWxsYmFjaykge1xuICBjb25zb2xlLmxvZyggJ0RhdGFNYW5hZ2VyI2dldF90YWJsZXMnIClcbiAgdmFyIHRhYmxlcyA9IFtdXG5cbiAgUXVlcnlNYW5hZ2VyLm1ldGEoJ3RhYnVsYXInLCAnbGlzdCcsICd2ZXJib3NlJywgZnVuY3Rpb24oZGF0YSkgeyBcbiAgICAvLyBjb25zb2xlLmxvZyggJ1F1ZXJ5TWFuYWdlciNtZXRhIHdpdGggZGF0YTogJyArIGRhdGEgKVxuICAgIF8uZm9yRWFjaChkYXRhLCBmdW5jdGlvbiAodGFibGUpIHtcbiAgICAgIGlmICggdGFibGVbJ2NhdGVnb3J5J10gPT09IGNhdGVnb3J5ICl7XG4gICAgICAgIHRhYmxlcy5wdXNoKCB0YWJsZSApXG4gICAgICB9XG4gICAgfSlcbiAgICBpZiAoY2FsbGJhY2spIHsgY2FsbGJhY2sodGFibGVzKSB9XG4gIH0pXG59XG5cblxudmFyIGdldF9maWVsZHMgPSBmdW5jdGlvbiAoYXJncykge1xuICBjb25zb2xlLmxvZygnRGF0YU1hbmFnZXIjZ2V0X2ZpZWxkcycpXG4gIHZhciB0YWJsZSAgICA9IGFyZ3NbJ3RhYmxlJ10sXG4gICAgICBjYWxsYmFjayA9IGFyZ3NbJ2NhbGxiYWNrJ11cbiAgXG4gIFF1ZXJ5TWFuYWdlci5tZXRhKCd0YWJ1bGFyJywgdGFibGUsICdtZXRhJywgZnVuY3Rpb24oZGF0YSkgeyBcbiAgICBpZiAoY2FsbGJhY2spIHsgY2FsbGJhY2soIGRhdGEuYXR0cmlidXRlcyApIH1cbiAgfSlcbn1cblxudmFyIGdldF9nZW9ncmFwaGllcyA9IGZ1bmN0aW9uIChhcmdzKSB7XG4gIGNvbnNvbGUubG9nKCdEYXRhTWFuYWdlciNnZXRfZmllbGRzJylcbiAgdmFyIHRhYmxlICAgID0gYXJnc1sndGFibGUnXSxcbiAgICAgIGNhbGxiYWNrID0gYXJnc1snY2FsbGJhY2snXVxuICBcbiAgUXVlcnlNYW5hZ2VyLm1ldGEoJ3RhYnVsYXInLCB0YWJsZSwgJ21ldGEnLCBmdW5jdGlvbihkYXRhKSB7IFxuICAgIGlmIChjYWxsYmFjaykgeyBjYWxsYmFjayggZGF0YS5zdW1tYXJ5X2xldmVscyApIH1cbiAgfSlcbn1cblxuXG52YXIgZ2V0ID0gZnVuY3Rpb24gKGFyZ3MpIHtcbiAgY29uc29sZS5sb2coJ0RhdGFNYW5hZ2VyI2dldCcpXG4gIGNvbnNvbGUubG9nKCdHRVQnKyBhcmdzWydkYXRhJ10gKycgd2hlcmUgJysgYXJnc1snZnJvbSddICsnID0gJysgYXJnc1sndXNpbmcnXSArJy4nICkgfVxuXG5cbm1vZHVsZS5leHBvcnRzID0ge1xuICAgIGdldF90b3BpY3M6ICBnZXRfdG9waWNzXG4gICwgZ2V0X3RhYmxlczogIGdldF90YWJsZXNcbiAgLCBnZXRfZmllbGRzOiAgZ2V0X2ZpZWxkc1xuICAsIGdldF9nZW9ncmFwaGllczogZ2V0X2dlb2dyYXBoaWVzIFxufSIsImNvbnNvbGUubG9nKCdhbGxvIGFsbG8nKVxuXG52YXIgUXVlcnlNYW5hZ2VyICA9IHJlcXVpcmUoJy4vcXVlcnlfbWFuYWdlcicpXG52YXIgRGF0YU1hbmFnZXIgICA9IHJlcXVpcmUoJy4vZGF0YV9tYW5hZ2VyJylcbnZhciBTZWxlY3RNYW5hZ2VyID0gcmVxdWlyZSgnLi9zZWxlY3RfbWFuYWdlcicpXG5cblxuRGF0YU1hbmFnZXIuZ2V0X3RvcGljcyggZnVuY3Rpb24gKHRvcGljcykge1xuICAkKCdzZWxlY3QjdG9waWMnKS5odG1sKCBTZWxlY3RNYW5hZ2VyLmdlbmVyYXRlX29wdGlvbnModG9waWNzKSApXG59KVxuXG5EYXRhTWFuYWdlci5nZXRfdGFibGVzKCdUcmFuc3BvcnRhdGlvbicsIGZ1bmN0aW9uICh0YWJsZXMpIHtcbiAgJCgnc2VsZWN0I3RhYmxlJykuaHRtbCggU2VsZWN0TWFuYWdlci5nZW5lcmF0ZV9vcHRpb25zKHRhYmxlcywge3RleHQ6ICd0aXRsZScsIHZhbHVlOiAnbmFtZSd9KSApXG59KVxuXG5EYXRhTWFuYWdlci5nZXRfZmllbGRzKHt0YWJsZTogJ21lYW5zX3RyYW5zcG9ydGF0aW9uX3RvX3dvcmtfYnlfcmVzaWRlbmNlJywgY2FsbGJhY2s6IGZ1bmN0aW9uIChmaWVsZHMpIHtcbiAgJCgnc2VsZWN0I2ZpZWxkJykuaHRtbCggU2VsZWN0TWFuYWdlci5nZW5lcmF0ZV9vcHRpb25zKGZpZWxkcywge3RleHQ6ICdhbGlhcycsIHZhbHVlOiAnZmllbGRfbmFtZSd9KSApXG59fSlcblxuRGF0YU1hbmFnZXIuZ2V0X2dlb2dyYXBoaWVzKHt0YWJsZTogJ21lYW5zX3RyYW5zcG9ydGF0aW9uX3RvX3dvcmtfYnlfcmVzaWRlbmNlJywgY2FsbGJhY2s6IGZ1bmN0aW9uIChzdW1sZXZzKSB7XG4gICQoJ3NlbGVjdCNnZW9ncmFwaHknKS5odG1sKCBTZWxlY3RNYW5hZ2VyLmdlbmVyYXRlX29wdGlvbnMoc3VtbGV2cywge3RleHQ6ICduYW1lJywgdmFsdWU6ICdrZXknfSkgKVxufX0pIiwidmFyIGFwaV9iYXNlID0gJ2h0dHA6Ly9sb2NhbGhvc3Q6MjQ3NCdcblxudmFyIG1ldGEgPSBmdW5jdGlvbiAoKSB7XG4gIGNvbnNvbGUubG9nKCdRdWVyeU1hbmFnZXIjbWV0YSB3aXRoIGFyZ3M6ICcpXG4gIGNvbnNvbGUubG9nKGFyZ3VtZW50cylcbiAgdmFyIGFyZ3MgPSBBcnJheS5wcm90b3R5cGUuc2xpY2UuY2FsbChhcmd1bWVudHMpO1xuICB2YXIgY2FsbGJhY2sgPSBhcmdzLnBvcChbYXJncy5sZW5ndGgtMV0pXG4gIHF1ZXJ5X3BhdGggPSAnLycgKyBhcmdzLmpvaW4oXCIvXCIpXG4gIHJlcXVlc3QoeyBcbiAgICBwYXRoOiBxdWVyeV9wYXRoLFxuICAgIGNhbGxiYWNrOiBjYWxsYmFjayB9KVxufVxuXG52YXIgcmVxdWVzdCA9IGZ1bmN0aW9uKGFyZ3MpIHtcbiAgdmFyIGNhbGxiYWNrID0gYXJnc1snY2FsbGJhY2snXVxuICBjb25zb2xlLmxvZygnUXVlcnlNYW5hZ2VyI3JlcXVlc3Qgd2l0aCBhcmdzOiAnKVxuICBjb25zb2xlLmxvZyhhcmdzKVxuICB2YXIgYmFzZSA9IGFyZ3NbJ2FwaV9iYXNlJ10gICB8fCBhcGlfYmFzZVxuICAgICwgcGF0aCA9IGFyZ3NbJ3BhdGgnXSAgICAgICB8fCAnLydcbiAgICAsIG9wdHMgPSBhcmdzWydxdWVyeV9hcmdzJ10gfHwgJydcbiAgICAsIHR5cGUgPSBhcmdzWydtZXRob2QnXSAgICAgfHwgJ0dFVCdcbiAgICAsIGRhdGEgPSBhcmdzWydkYXRhJ10gICAgICAgfHwgbnVsbFxuXG4gIHZhciB1cmwgPSBiYXNlICsgcGF0aCArIG9wdHNcbiAgY29uc29sZS5sb2coJ3VybDonICsgdXJsKVxuXG4gICQuYWpheCh7XG4gICAgdXJsOiB1cmwsXG4gICAgdHlwZTogdHlwZSxcbiAgICBzdWNjZXNzOiBmdW5jdGlvbiAoZGF0YSkge1xuICAgICAgY29uc29sZS5sb2coICdTVUNDRVNTOiAnIClcbiAgICAgIC8vIGNvbnNvbGUubG9nKCBkYXRhIClcbiAgICAgIGlmIChjYWxsYmFjaykgY2FsbGJhY2soZGF0YSlcbiAgICAgIH0sXG4gICAgZXJyb3I6IGZ1bmN0aW9uIChlKSB7XG4gICAgICBjb25zb2xlLmxvZyggJ0VSUk9SOiAnIClcbiAgICAgIGNvbnNvbGUubG9nKCBlICkgfVxuICB9KVxufVxuXG5tb2R1bGUuZXhwb3J0cyA9IHsgbWV0YTogbWV0YSB9IiwiLy8gU2VsZWN0TWFuYWdlci5pbml0ID0gZnVuY3Rpb24gKCkge1xuLy8gICB2YXIgdG9waWMgICAgID0gJCgnc2VsZWN0I3RvcGljJylcbi8vICAgICAsIHRhYmxlICAgICA9ICQoJ3NlbGVjdCN0YWJsZScpXG4vLyAgICAgLCBmaWVsZCAgICAgPSAkKCdzZWxlY3QjZmllbGQnKVxuLy8gICAgICwgZ2VvZ3JhcGh5ID0gJCgnc2VsZWN0I2dlb2dyYXBoeScpXG4vLyAgICAgLCBzZWxlY3RzID0gW3RvcGljLCB0YWJsZSwgZmllbGQsIGdlb2dyYXBoeV1cblxuLy8gICBfLmZvckVhY2goc2VsZWN0cywgZnVuY3Rpb24gKHNlbGVjdCkge1xuLy8gICAgIFNlbGVjdE1hbmFnZXIucG9wdWxhdGUoIHNlbGVjdCwgIClcbi8vICAgfSlcbi8vIH1cblxuLy8gU2VsZWN0TWFuYWdlci51cGRhdGVfY29udHJvbHMgPSBmdW5jdGlvbiAoYXJncykge1xuLy8gICBjb25zb2xlLmxvZygnU2VsZWN0TWFuYWdlciN1cGRhdGVfY29udHJvbHMgd2l0aCBhcmdzOiAnICsgYXJncylcbi8vICAgU2VsZWN0TWFuYWdlci5wb3B1bGF0ZSh7IGVsZW1lbnQ6IGFyZ3NbJ3RvX3VwZGF0ZSddXG4vLyAgICAgICAgICAgICAgICAgICAgICAgICAgLCB1c2luZzogICBhcmdzWydzZWxlY3RlZCddXG4vLyAgICAgICAgICAgICAgICAgICAgICAgICAgLCBmcm9tOiAgICBhcmdzWydjaGFuZ2VkJ10gXG4vLyAgICAgICAgICAgICAgICAgICAgICAgICB9KSB9XG5cblxuLy8gU2VsZWN0TWFuYWdlci5wb3B1bGF0ZSA9IGZ1bmN0aW9uIChhcmdzKSB7XG4vLyAgIGNvbnNvbGUubG9nKCdTZWxlY3RNYW5hZ2VyI3BvcHVsYXRlIHdpdGggYXJnczogJyArIGFyZ3MpXG4vLyAgIHZhciBlbGVtZW50ID0gYXJnc1snZWxlbWVudCddICAgLy8gdGFibGUgc2VsZWN0XG4vLyAgICAgLCB1c2luZyAgID0gYXJnc1sndXNpbmcnXSAgICAgLy8gdG9waWMgb3B0aW9uXG4vLyAgICAgLCBjaGFuZ2VkID0gYXJnc1snY2hhbmdlZCddICAgLy8gdG9waWMgc2VsZWN0XG4vLyAgIC8vIGdldCggJ3RhYmxlJywgJ3RvcGljJywgJ3RyYW5zcG9ydGF0aW9uJyApXG4vLyAgIHZhciBwYWlycyA9IERhdGFNYW5hZ2VyLmdldCh7IGRhdGE6IGVsZW1lbnQuaWQsIGZyb206IGNoYW5nZWQuaWQsIHVzaW5nOiB1c2luZy52YWx1ZSB9KVxuLy8gICB2YXIgb3B0aW9ucyA9IFNlbGVjdE1hbmFnZXIuZ2VuZXJhdGVfb3B0aW9ucyhwYWlycywgeyBwbGFjZWhvbGRlcjogJ1NlbGVjdCcgKyBlbGVtZW50LmlkIH0pXG4vLyAgIGVsZW1lbnQuaHRtbChvcHRpb25zKSB9XG5cblxudmFyIGdlbmVyYXRlX29wdGlvbnMgPSBmdW5jdGlvbiAocGFpcnMsIG9wdHMpIHtcbiAgdmFyIG9wdHMgPSBvcHRzIHx8IHt9XG4gICAgLCBwbGFjZWhvbGRlciA9IG9wdHNbJ3BsYWNlaG9sZGVyJ10gfHwgXCJDaG9vc2Ugb25lXCJcbiAgICAsIHRleHQgPSBvcHRzWyd0ZXh0J11cbiAgICAsIHZhbHVlID0gb3B0c1sndmFsdWUnXVxuICAgICwgb3B0aW9ucyA9IFtdXG4gIGNvbnNvbGUubG9nKFwicGFpcnNcIilcbiAgY29uc29sZS5sb2cocGFpcnMpXG4gIGlmIChfLmlzU3RyaW5nKHBhaXJzWzBdKSkge1xuICAgIHBhaXJzID0gcGFpcnNfZnJvbV9hcnJheShwYWlycykgfVxuICBlbHNlIGlmIChfLmlzT2JqZWN0KHBhaXJzWzBdKSkge1xuICAgIHBhaXJzID0gcGFpcnNfZnJvbV9vYmplY3RzKHsgb2JqZWN0czogcGFpcnMsIHRleHQ6IHRleHQsIHZhbHVlOiB2YWx1ZSB9KSBcbiAgICBjb25zb2xlLmxvZyhwYWlycykgfVxuXG5cbiAgb3B0aW9ucy5wdXNoKCc8b3B0aW9uIHZhbHVlPVwiXCI+JyArIHBsYWNlaG9sZGVyICsgJzwvb3B0aW9uPicpXG4gIG9wdGlvbnMucHVzaCggb3B0aW9uc19mcm9tX2hhc2gocGFpcnMsIG9wdHMpIClcbiAgcmV0dXJuIG9wdGlvbnMuam9pbihcIlxcblwiKSB9XG5cblxudmFyIHBhaXJzX2Zyb21fYXJyYXkgPSBmdW5jdGlvbiAoYXJyYXkpIHtcbiAgdmFyIHBhaXJzID0ge31cbiAgXy5mb3JFYWNoKGFycmF5LCBmdW5jdGlvbihlbGVtZW50KSB7IHBhaXJzW2VsZW1lbnRdID0gZWxlbWVudCB9KVxuICByZXR1cm4gcGFpcnMgfVxuXG5cbnZhciBwYWlyc19mcm9tX29iamVjdHMgPSBmdW5jdGlvbiAoYXJncykge1xuICB2YXIgb2JqZWN0cyA9IGFyZ3NbJ29iamVjdHMnXVxuICAgICwgdGV4dCAgICA9IGFyZ3NbJ3RleHQnXVxuICAgICwgdmFsdWUgICA9IGFyZ3NbJ3ZhbHVlJ11cbiAgICAsIHBhaXJzICAgPSBbXVxuXG4gIF8uZm9yRWFjaChvYmplY3RzLCBmdW5jdGlvbihvYmplY3QpIHsgXG4gICAgcGFpcnNbb2JqZWN0W3RleHRdXSA9IG9iamVjdFt2YWx1ZV0gfSlcblxuICByZXR1cm4gcGFpcnMgfVxuXG5cbnZhciBvcHRpb25zX2Zyb21faGFzaCA9IGZ1bmN0aW9uIChwYWlycywgb3B0cykge1xuICB2YXIgb3B0aW9ucyA9IFtdXG4gICAgLCBzZWxlY3RlZCA9ICcnXG4gIF8uZm9ySW4ocGFpcnMsIGZ1bmN0aW9uKHZhbHVlLCBrZXkpe1xuICAgIG9wdGlvbnMucHVzaCgnPG9wdGlvbiB2YWx1ZT1cIicrIHZhbHVlICsnXCIgJysgc2VsZWN0ZWQgKyc+Jysga2V5ICsnPC9vcHRpb24+JylcbiAgfSk7XG4gIHJldHVybiBvcHRpb25zXG59XG5cblxubW9kdWxlLmV4cG9ydHMgPSB7XG4gICAgZ2VuZXJhdGVfb3B0aW9uczogIGdlbmVyYXRlX29wdGlvbnNcbn0iXX0=
+},{"./data_manager":1}],8:[function(require,module,exports){
+
+var zoom_config = {
+      8:  'municipality'
+    , 12: ['census_tract', 'school_district']
+    , 15: 'census_blockgroup' }
+
+
+var arrayify = function (hash) {
+  console.log('ZoomManager#arrayify')
+  var max   = _.max( _.map(_.keys(hash), function (e) { return _.parseInt(e) } ))
+    , array = Array(max) // TODO: or, map.maxZoom()
+
+  _.each(hash, function(value, key) {
+    array[key] = value })
+  console.log(array)
+  return array
+}
+
+var zoom_array = arrayify(zoom_config) 
+
+var appropriate_sumlev = function (map, sumlevs) {
+  var return_value
+  console.log('ZoomManager#appropriate_sumlev')
+  // returns a value like 'census_blockgroup'
+  
+  // starts at current zoom, unless that's too high
+  var start_zoom = map.getZoom()
+  if ( start_zoom > zoom_array.length ) start_zoom = zoom_array.length
+
+  // console.log('start zoom: ' + start_zoom)
+  // work back from closest to farthest
+  for (var zoom = start_zoom; zoom > -1; zoom--){
+    options = zoom_array[zoom]  // ret: 'census_blocks' or ['ct', 'sd']
+    if (! _.isArray(options)) options = [options] // force to be Array
+
+    _.each(options, function(option) {
+      // console.log('option: ' + option)
+      if (typeof return_value != 'undefined') return false
+      _.forIn(sumlevs, function (sumlev, key) {
+        // console.log('sumlev: ' + sumlev.name)
+        if (sumlev.name === option) {
+          console.log('RETURNING ' + sumlev.name)
+          return_value = sumlev.name
+        }
+      })  
+    })
+  }
+  console.log('return_value: ' + return_value)
+  return return_value
+}
+
+module.exports = {
+  appropriate_sumlev: appropriate_sumlev
+}
+},{}]},{},[3])
 ;

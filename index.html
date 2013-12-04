@@ -2,25 +2,33 @@
 <html>
 <head>
   <title>NDT</title>
+  <link rel="stylesheet" href="http://cdn.leafletjs.com/leaflet-0.6.4/leaflet.css" />
+  <link rel="stylesheet" href="leaflet.draw.css" />
   <link rel="stylesheet" type="text/css" href="main.css" />
 </head>
 <body>
 
-  <select id="topic">
-    <option></option>
-  </select>
+<div id="control">
+
+  <select id="topic"></select>
   <select id="table">
-    <option>First, select a topic</option>
+    <option value="">Choose a topic first</option>
   </select>
   <select id="field">
-    <option>First, select a table</option>
+    <option value="">Choose a table first</option>
   </select>
   <select id="geography">
-    <option>First, select a dataset</option>
+    <option value="">Choose a table first</option>
   </select>
+
+</div>
+
+  <div id="map"></div>
 
   <script src="http://cdnjs.cloudflare.com/ajax/libs/jquery/2.0.3/jquery.min.js"></script>
   <script src="http://cdnjs.cloudflare.com/ajax/libs/lodash.js/2.3.0/lodash.min.js"></script>
+  <script src="http://cdnjs.cloudflare.com/ajax/libs/leaflet/0.6.4/leaflet.js"></script>
+  <script src="scripts/leaflet.draw.js"></script>
   <script src="scripts/bundle.js"></script>
 </body>
 </html>

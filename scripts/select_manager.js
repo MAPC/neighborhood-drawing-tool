@@ -1,3 +1,5 @@
+var DataManager = require('./data_manager')
+
 // SelectManager.init = function () {
 //   var topic     = $('select#topic')
 //     , table     = $('select#table')
@@ -17,6 +19,7 @@
 //                          , from:    args['changed'] 
 //                         }) }
 
+// var populate_next = function()
 
 // SelectManager.populate = function (args) {
 //   console.log('SelectManager#populate with args: ' + args)
@@ -37,11 +40,13 @@ var generate_options = function (pairs, opts) {
     , options = []
   console.log("pairs")
   console.log(pairs)
+  console.log('text:'+ text +', value:' + value)
   if (_.isString(pairs[0])) {
     pairs = pairs_from_array(pairs) }
   else if (_.isObject(pairs[0])) {
     pairs = pairs_from_objects({ objects: pairs, text: text, value: value }) 
-    console.log(pairs) }
+    // console.log(pairs) 
+  }
 
 
   options.push('<option value="">' + placeholder + '</option>')
@@ -76,7 +81,38 @@ var options_from_hash = function (pairs, opts) {
   return options
 }
 
+var populate_next = function (obj) {
+  var value = obj.val()
+    , next  = obj.next()
+    , id    = obj.attr('id')
+    , opts  = {}
+
+  // console.log('populate_next with ') ; console.log( obj )
+  // console.log('value ' + value)      ; console.log('id ' + id)
+  // console.log('next ')               ; console.log(next)
+
+  switch (id) {
+    case 'topic':
+      opts = {text: 'title', value: 'name'}
+      DataManager.get_tables(value, function (pairs) {
+        next.html( generate_options(pairs, opts) )
+      })
+      break;
+    case 'table':
+      opts = {text: 'alias', value: 'field_name'}
+      DataManager.get_fields({ table: value, callback: function (pairs) {
+        next.html( generate_options(pairs, opts) )
+      }})
+      opts_geo = {text: 'title', value: 'name'}
+      DataManager.get_geographies({table: value, callback: function (pairs) {
+        next.next().html( generate_options(pairs, opts_geo) )
+      }})
+      break;
+  }
+}
+
 
 module.exports = {
     generate_options:  generate_options
+  , populate_next: populate_next
 }

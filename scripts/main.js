@@ -1,22 +1,124 @@
-console.log('allo allo')
+var Mediator      = require('./mediator').mediator
 
 var QueryManager  = require('./query_manager')
 var DataManager   = require('./data_manager')
 var SelectManager = require('./select_manager')
+var MapManager    = require('./map_manager')
+var ZoomManager   = require('./zoom_manager')
 
 
 DataManager.get_topics( function (topics) {
-  $('select#topic').html( SelectManager.generate_options(topics) )
+  $('select#topic').html(
+    SelectManager.generate_options(topics) )  })
+
+
+$('select').on('change', function() {
+  SelectManager.populate_next( $(this) ) })
+
+
+$('select#field').on('change', function () {
+  var field = $(this).val()
+  var geo = $('select#geography option')[1],
+      geo = $(geo)
+
+  geo.attr('selected', true) // select first geography
+  
+  if ( MapManager.has_study_area() ) {
+    MapManager.set_study_area({
+      table:     $('select#table').val()
+    , field:     field
+    , geography: geo.val() })
+  }
+
+  MapManager.set_overlay({
+      table:     $('select#table').val()
+    , field:     field
+    , geography: geo.val() })
 })
 
-DataManager.get_tables('Transportation', function (tables) {
-  $('select#table').html( SelectManager.generate_options(tables, {text: 'title', value: 'name'}) )
+
+$('select#geography').on('change', function () {
+  var geo = $(this).find(':selected')
+  if ( MapManager.has_study_area() ) {
+    MapManager.set_study_area({ geography: geo.val() }) }
+  MapManager.set_overlay({ geography: geo.val() })  
 })
 
-DataManager.get_fields({table: 'means_transportation_to_work_by_residence', callback: function (fields) {
-  $('select#field').html( SelectManager.generate_options(fields, {text: 'alias', value: 'field_name'}) )
-}})
 
-DataManager.get_geographies({table: 'means_transportation_to_work_by_residence', callback: function (sumlevs) {
-  $('select#geography').html( SelectManager.generate_options(sumlevs, {text: 'name', value: 'key'}) )
-}})
+
+
+var map = MapManager.init_map()
+MapManager.establish_map(map)
+
+
+map.on('draw:created', function (drawing) {
+  MapManager.set_study_area({ study_area: drawing.layer })  })
+
+
+map.on('draw:edited', function (drawing) {
+  MapManager.set_study_area({ study_area: drawing.layer })  })
+
+
+map.on('moveend', function () {
+  MapManager.set_overlay({})  })
+
+
+map.on('zoomend', function () {
+  console.log( 'zoom: ' + map.getZoom() )
+
+  var set_zoom_selects = function (sumlevs) {
+    console.log('summary levels: ' + sumlevs)
+    var value = ZoomManager.appropriate_sumlev(map, sumlevs)
+    console.log(value)
+    $("select#geography").val(value)
+    $("select#geography").trigger('change')
+  }
+
+  var table = $('select#table').val()
+  console.log('table: ' + table)
+  DataManager.get_geographies({
+    table: table,
+    callback: set_zoom_selects
+  })
+})
+
+
+
+
+
+
+
+
+
+// This is more what I imagined but it did not turn out that way. VVV
+
+
+// map.on( 'load', function()     { Mediator.publish( 'map_loaded ') } )
+// map.on( 'moveend', function () { Mediator.publish( 'map_moved' ) } )
+// map.on( 'zoomend', function () { Mediator.publish( 'map_zoomed' ) } )
+
+// Mediator.subscribe( 'map_loaded', MapManager.init() )
+// Mediator.subscribe( 'map_moved',  MapManager.handle_move() )
+// Mediator.subscribe( 'map_zoomed', MapManager.handle_zoom() )
+
+
+// map.on( 'draw:create',  function (drawing) { Mediator.publish( 'figure_drawn' ) } )
+// map.on( 'draw:edited',  function (drawing) { Mediator.publish( 'figure_edited' ) } )
+// map.on( 'draw:deleted', function () { Mediator.publish( 'figure_deleted' ) } )
+
+// Mediator.subscribe( 'figure_drawn',   StudyAreaManager.handle_draw( drawing ) )
+// Mediator.subscribe( 'figure_edited',  StudyAreaManager.handle_edit( drawing ) )
+// Mediator.subscribe( 'figure_deleted', StudyAreaManager.handle_delete() )
+
+
+// $('select').on('change', function () {
+//   var self  = $(this),
+//       value = self.val() // TODO or something like this
+//   if (self.id === 'field') {
+//     Mediator.publish ( 'field_changed', value )
+//   } else {
+//     Mediator.publish( 'select_changed', {self: self, next: self.next(), value: value} ) }
+// })
+
+// Mediator.subscribe( 'select_changed', SelectManager.populate_next( args ) )
+// Mediator.subscribe( 'field_changed',  MapManager.change_field( field ) )
