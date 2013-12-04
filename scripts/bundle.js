@@ -237,7 +237,7 @@ map.on('draw:created', function (drawing) {
 
 
 map.on('draw:edited', function (drawing) {
-  console.log('draw#edited')  })
+  MapManager.set_study_area({ study_area: drawing.layer })  })
 
 
 map.on('moveend', function () {
@@ -318,11 +318,12 @@ var table, field, geography, study_area
   , tiles        = L.tileLayer( mapc_url, { attribution: mapc_attrib } )
   , extent_layer = new L.layerGroup()
   , study_layer  = new L.featureGroup()
+  , drawing_layer = new L.featureGroup()
   , base_layers  = { 
       "MAPC Basemap": tiles }
   , over_layers  = {
       "Map Extent": extent_layer,
-      "Study Area": study_layer }
+      "Study Area": drawing_layer }
 
 
 var layer_control = L.control.layers(base_layers, over_layers)
@@ -341,7 +342,7 @@ var layer_control = L.control.layers(base_layers, over_layers)
         polyline: false,
         marker: false },
       edit: {
-        featureGroup: study_layer } });
+        featureGroup: drawing_layer } });
 
 
 var map = L.map('map', {
@@ -358,6 +359,7 @@ var init_map = function () {
 var establish_map = function (map) {
   extent_layer.addTo(map)
   study_layer.addTo(map)
+  drawing_layer.addTo(map)
   layer_control.addTo(map)
   map.addControl(draw_control)
 }
@@ -396,7 +398,7 @@ var set_study_area = function(args){
     console.log('throw error')
   }
 
-  study_layer.addLayer( study_area )
+  drawing_layer.addLayer( study_area )
 
   get_layer({
       table:     table

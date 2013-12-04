@@ -1,7 +1,4 @@
-// TODO set up jQuery document ready
-// TODO set up map
 
-console.log('NDT')
 
 var Mediator      = require('./mediator').mediator
 
@@ -61,7 +58,7 @@ map.on('draw:created', function (drawing) {
 
 
 map.on('draw:edited', function (drawing) {
-  console.log('draw#edited')  })
+  MapManager.set_study_area({ study_area: drawing.layer })  })
 
 
 map.on('moveend', function () {
@@ -93,6 +90,9 @@ map.on('zoomend', function () {
 
 
 
+
+
+// This is more what I imagined but it did not turn out that way. VVV
 
 
 // map.on( 'load', function()     { Mediator.publish( 'map_loaded ') } )
