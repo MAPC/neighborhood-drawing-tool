@@ -1,3 +1,5 @@
+var _ = require('lodash')
+
 module.exports = function(grunt) {
 
   grunt.initConfig({
@@ -36,31 +38,43 @@ module.exports = function(grunt) {
         src: ['test/*.js']
       }
     },
+    sass: {
+      dist: {
+        files: [{
+          expand: true,
+          cwd: 'styles',
+          src: ['*.scss'],
+          dest: 'styles',
+          ext: '.css'
+        }]
+      }
+    },
     browserify: {
       'scripts/bundle.js': ['scripts/main.js']
     },
     watch: {
-      files: '<%= jshint.src %>',
-      tasks: ['browserify'],  // 'jshint', 'mocha', 
-      options: {
-        livereload: {
-          port: 9000
-        }
+      scripts: {
+        files: ['<%= jshint.src %>'],
+        tasks: ['browserify'],  // 'jshint', 'mocha', 
+        options: { livereload: { port: 9000 }, atBegin: true }
+      },
+      styles: {
+        files: ['styles/*.scss'],
+        tasks: ['sass'],
+        options: { livereload: { port: 9000 }, atBegin: true }
       }
     }
   });
 
-  // load browserify task
-  grunt.loadNpmTasks('grunt-browserify')
 
-  // load mocha task
-  grunt.loadNpmTasks('grunt-mocha')
-
-  // load watch task
-  grunt.loadNpmTasks('grunt-contrib-watch')
-
-  // load JSHint task
-  grunt.loadNpmTasks('grunt-contrib-jshint')
+  var tasks = ['grunt-contrib-sass',
+               'grunt-browserify',
+               'grunt-mocha',
+               'grunt-contrib-watch',
+               'grunt-contrib-jshint',
+               'grunt-contrib-uglify']
+  
+  _.each(tasks, function(task) { grunt.loadNpmTasks(task) })
 
   // Default task
   grunt.registerTask('default', 'watch')

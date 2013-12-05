@@ -1,0 +1,80 @@
+select {
+  clear: both;
+  margin: 20px; }
+
+#map {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  left: 0;
+  right: 0; }
+
+#control {
+  /*display: none;*/
+  position: fixed;
+  top: 10px;
+  left: 60px;
+  right: 60px;
+  height: auto;
+  padding: 0px 10px;
+  background-color: rgba(255, 255, 255, 0.6);
+  z-index: 1000; }
+
+/* Map Legend 
+from Leaflet tutorial http://leafletjs.com/examples/choropleth.html
+---------------------------------------------------------------------- */
+.info {
+  padding: 6px 8px;
+  font: 14px/16px Arial, Helvetica, sans-serif;
+  background: white;
+  background: rgba(255, 255, 255, 0.8);
+  box-shadow: 0 0 15px rgba(0, 0, 0, 0.2);
+  border-radius: 5px; }
+
+.info h4 {
+  margin: 0 0 5px;
+  color: #777; }
+
+.legend {
+  line-height: 18px;
+  color: #555; }
+
+.legend i {
+  width: 18px;
+  height: 18px;
+  float: left;
+  margin-right: 8px;
+  opacity: 0.7; }
+
+/* Report Window Scrollover
+Ripped from codeforboston/cambridge_voting_locations */
+#info {
+  position: absolute;
+  top: 50px;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  transform: translateY(66%);
+  background: white;
+  transition: transform .3s ease; }
+  #info header {
+    position: relative;
+    min-height: 20%;
+    padding: 10px 30px 5px;
+    text-align: center;
+    border-top: 3px solid rgba(0, 0, 0, 0.4);
+    cursor: pointer; }
+  #info h4 {
+    color: white;
+    font-size: 150%;
+    font-weight: 300;
+    text-transform: uppercase;
+    margin-bottom: 5px;
+    text-shadow: 1px 1px 0 rgba(0, 0, 0, 0.25);
+    height: 60%; }
+  #info .notes {
+    font-size: 115%;
+    height: 40%; }
+  #info.up {
+    transform: translateY(0);
+    transition: transform .3s ease; }
