@@ -1,0 +1,25 @@
+{
+  "name": "neighborhood-drawing-tool",
+  "version": "0.0.1",
+  "description": "Draw your geography. Get stats about it. Share it and change the world.",
+  "repository": {
+    "type": "git",
+    "url": "git://github.com/mapc/neighborhood-drawing-tool"
+  },
+  "dependencies": {
+    "lodash": "2.3.0"
+  },
+  "devDependencies": {
+    "grunt": "~0.4.2",
+    "grunt-cli": "~0.1.11",
+    "grunt-contrib-connect": "~0.1.2",
+    "grunt-contrib-watch": "~0.5.3",
+    "grunt-contrib-jshint": "~0.7.2",
+    "grunt-mocha": "~0.4.7",
+    "browserify": "~2.36.1",
+    "grunt-browserify": "~1.2.11"
+  },
+  "scripts": {
+    "test": "grunt mocha"
+  }
+}

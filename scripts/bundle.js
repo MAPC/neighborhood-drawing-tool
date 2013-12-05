@@ -174,10 +174,7 @@ module.exports = {
   , style: style
 }
 },{}],3:[function(require,module,exports){
-// TODO set up jQuery document ready
-// TODO set up map
 
-console.log('NDT')
 
 var Mediator      = require('./mediator').mediator
 
@@ -269,6 +266,9 @@ map.on('zoomend', function () {
 
 
 
+
+
+// This is more what I imagined but it did not turn out that way. VVV
 
 
 // map.on( 'load', function()     { Mediator.publish( 'map_loaded ') } )
