@@ -63,7 +63,7 @@ module.exports = function(grunt) {
         }
       },
       styles: {
-        files: ['styles/*.scss'],
+        files: ['styles/*.scss', '*.html'],
         tasks: ['sass'],
         options: { atBegin: true },
         livereload: {

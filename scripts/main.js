@@ -89,7 +89,7 @@ map.on('zoomend', function () {
 
 
 
-var report = ReportManager.init( $('#report'), $('#report#content') )
+// var report = ReportManager.init( $('#report'), $('#report#content') )
 
 
 

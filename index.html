@@ -8,9 +8,12 @@
 </head>
 <body>
 
-  <div id="control">
-    <select id="topic"></select>
-    <select id="table">
+  <div id="title-bar">
+<!--     <span id="field">Unemployment Rate</span> by 
+    <span id="geography">Census Tract</span> -->
+
+    <select id="topic" class="aside"></select>
+    <select id="table" class="aside">
       <option value="">Choose a topic first</option>
     </select>
     <select id="field">
@@ -19,6 +22,7 @@
     <select id="geography">
       <option value="">Choose a table first</option>
     </select>
+
   </div>
 
   <div id="map"></div>
@@ -43,9 +47,9 @@
             <a class="delete">delete</a>
           </div>
           <div class="field">
-            <div class="name">% Public Transit</div>
+            <div class="name">% Bike or Walk</div>
             <div class="separator">:</div>
-            <div class="value">50%</div>
+            <div class="value">10%</div>
             <a class="delete">delete</a>
           </div>
         </div>

@@ -265,7 +265,7 @@ map.on('zoomend', function () {
 
 
 
-var report = ReportManager.init( $('#report'), $('#report#content') )
+// var report = ReportManager.init( $('#report'), $('#report#content') )
 
 
 
@@ -542,6 +542,7 @@ var request = function(args) {
 module.exports = { meta: meta }
 },{}],7:[function(require,module,exports){
 var report = {}
+  , config
 
 // Public
 
@@ -563,6 +564,13 @@ var add_category = function () {
   // those most important fields for a category which can be pared or added to later by the user
 
   // loops through the object calling ReportManager#add_field
+  category = config.categories.transportation
+  _.forEach(category.data, function (set) {
+    _.forEach(set.fields, function (field) {
+      
+      add_field({ table: set.table, field: field })
+    })
+  })
 }
 
 
@@ -594,8 +602,8 @@ var get_summary = function (args) {
   // sum or average the field based on geography / keys
   var operation = field.alias.indexOf('%') != -1 ? 'AVG' : 'SUM'
     , query
-    , geojson = args.geojson
-    , keys = geojson_to_keys( geojson )
+    , geojson  = args.geojson
+    , keys     = geojson_to_keys( geojson )
     , callback = args.callback
     , query = "SELECT "+ operation +" t."+ field
       + " IN "+ keys.join(', ')
@@ -699,10 +707,12 @@ var populate_next = function (obj) {
     , id    = obj.attr('id')
     , opts  = {}
 
-  // console.log('populate_next with ') ; console.log( obj )
+  // console.log('-------------------')
+  // console.log('populate_next with param ') ; console.log( obj )
   // console.log('value ' + value)      ; console.log('id ' + id)
   // console.log('next ')               ; console.log(next)
-
+  // console.log('-------------------')
+  
   switch (id) {
     case 'topic':
       opts = {text: 'title', value: 'name'}

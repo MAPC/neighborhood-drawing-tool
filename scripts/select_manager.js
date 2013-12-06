@@ -87,10 +87,12 @@ var populate_next = function (obj) {
     , id    = obj.attr('id')
     , opts  = {}
 
-  // console.log('populate_next with ') ; console.log( obj )
+  // console.log('-------------------')
+  // console.log('populate_next with param ') ; console.log( obj )
   // console.log('value ' + value)      ; console.log('id ' + id)
   // console.log('next ')               ; console.log(next)
-
+  // console.log('-------------------')
+  
   switch (id) {
     case 'topic':
       opts = {text: 'title', value: 'name'}
