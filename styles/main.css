@@ -55,28 +55,55 @@ from Leaflet tutorial http://leafletjs.com/examples/choropleth.html
   left: 0;
   right: 0;
   bottom: 0;
-  transform: translateY(80%);
+  transform: translateY(85%);
   background: white;
+  color: #2d2d2d;
   z-index: 999;
   transition: transform .3s ease; }
   #report header {
     position: relative;
-    min-height: 20%;
-    padding: 10px 30px 5px;
-    text-align: center;
-    border-top: 3px solid rgba(0, 0, 0, 0.4);
-    cursor: pointer; }
+    background: #ababab;
+    min-height: 15%;
+    padding: 15px 70px 5px;
+    color: #2d2d2d;
+    text-align: left;
+    border-top: 3px solid rgba(0, 0, 0, 0.4); }
   #report h4 {
-    color: gray;
-    font-size: 150%;
+    font-family: Rockwell, Goudy Old Style, Franklin Gothic Book, TW Cent MT, Helvetica Neue;
+    color: white;
+    font-size: 200%;
     font-weight: 300;
     text-transform: uppercase;
     margin-bottom: 5px;
-    text-shadow: 1px 1px 0 rgba(0, 0, 0, 0.25);
-    height: 60%; }
-  #report .notes {
-    font-size: 115%;
-    height: 40%; }
-  #report.up {
-    transform: translateY(0);
-    transition: transform .3s ease; }
+    text-shadow: 1px 1px 0 rgba(0, 0, 0, 0.25); }
+  #report #content {
+    background: white; }
+    #report #content .category {
+      background: #509fd4;
+      padding: 5px 20px 10px; }
+      #report #content .category h4 {
+        font: 28px/32px Rockwell, Goudy Old Style, Franklin Gothic Book, TW Cent MT;
+        color: #edece2; }
+      #report #content .category .fields {
+        color: white; }
+        #report #content .category .fields .field {
+          display: block;
+          margin: 0px 10px;
+          padding: 10px;
+          font: 18px/21px Rockwell, Goudy Old Style, Franklin Gothic Book, TW Cent MT; }
+          #report #content .category .fields .field .name {
+            display: inline; }
+          #report #content .category .fields .field .separator {
+            display: inline; }
+          #report #content .category .fields .field .value {
+            display: inline; }
+          #report #content .category .fields .field a.delete {
+            display: inline;
+            color: #2d2d2d;
+            width: 10px;
+            height: 10px;
+            font-size: 14px; }
+            #report #content .category .fields .field a.delete:hover {
+              width: 20px;
+              color: #d2576a;
+              cursor: pointer; }

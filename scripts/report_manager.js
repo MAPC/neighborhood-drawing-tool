@@ -1,11 +1,16 @@
-var field_list = []
+var report = {}
+  , config
 
+// Public
 
-
-var init = function () {} // sets up the DOM element, sets private variables for this module to access
+var init = function (report_el, content_el) {
+  report         = report_el
+  report.content = content_el
+} // sets up the DOM element, sets private variables for this module to access
 
 
 var add_from_select = function (args) {
+  
   // given select values, call add_field
 }
 
@@ -16,6 +21,13 @@ var add_category = function () {
   // those most important fields for a category which can be pared or added to later by the user
 
   // loops through the object calling ReportManager#add_field
+  category = config.categories.transportation
+  _.forEach(category.data, function (set) {
+    _.forEach(set.fields, function (field) {
+      
+      add_field({ table: set.table, field: field })
+    })
+  })
 }
 
 
@@ -39,7 +51,7 @@ var display_field = function (data) {
   var div = "<div class='report-item'>"
           + result.name + ": " + result.value
           + "</div>"
-  $('#report').append( div )
+  report.content.append( div )
 }
 
 
@@ -47,9 +59,8 @@ var get_summary = function (args) {
   // sum or average the field based on geography / keys
   var operation = field.alias.indexOf('%') != -1 ? 'AVG' : 'SUM'
     , query
-    , geojson = args.geojson
-    , 
-    , keys = geojson_to_keys( geojson )
+    , geojson  = args.geojson
+    , keys     = geojson_to_keys( geojson )
     , callback = args.callback
     , query = "SELECT "+ operation +" t."+ field
       + " IN "+ keys.join(', ')

@@ -2,10 +2,11 @@
 
 var Mediator      = require('./mediator').mediator
 
-var QueryManager  = require('./query_manager')
 var DataManager   = require('./data_manager')
-var SelectManager = require('./select_manager')
 var MapManager    = require('./map_manager')
+var QueryManager  = require('./query_manager')
+var SelectManager = require('./select_manager')
+var ReportManager = require('./report_manager')
 var ZoomManager   = require('./zoom_manager')
 
 
@@ -87,6 +88,8 @@ map.on('zoomend', function () {
 
 
 
+
+var report = ReportManager.init( $('#report'), $('#report#content') )
 
 
 

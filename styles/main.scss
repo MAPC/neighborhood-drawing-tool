@@ -1,12 +1,25 @@
+$map-brown: #EDECE2;
+$dark_gray: #2d2d2d;
+$med_gray: #4d4d4d;
+$light_gray: #ababab;
+$extra_light_gray: #e1e1e1;
+
+$dark_red: #9d0c22;
+$med_red: #c71b35;
+$light_red: #d2576a;
+$extra_light_red: #ffb3bd;
+
+$dark_blue: #0c5c92;
+$med_blue: #246ada;
+$light_blue: #509fd4;
+$extra_light_blue: #b1d4eb;
+
+$mapc-fonts: Rockwell, Goudy Old Style, Franklin Gothic Book, TW Cent MT;
+
 select {
   clear: both;
   margin: 20px;
 }
-
-select#table {
-
-}
-
 // #map {
 //   position: fixed;
 //   top: 0;
@@ -17,7 +30,7 @@ select#table {
 
 #map {
     position: fixed !important;
-    top:50px;
+    top: 50px;
     left: 0;
     right: 0;
     bottom: 0;
@@ -81,40 +94,88 @@ from Leaflet tutorial http://leafletjs.com/examples/choropleth.html
     left: 0;
     right: 0;
     bottom: 0;
-    transform: translateY(80%);
+    transform: translateY(85%);
     background: white;
-    // color: $dark_gray;
+    color: $dark_gray;
     z-index: 999;
     transition: transform .3s ease;
 
     header {
         position: relative;
-        // background: $light_gray;
-        min-height: 20%;
-        padding: 10px 30px 5px;
-        // color: $dark_gray;
-        text-align: center;
+        background: $light_gray;
+        min-height: 15%;
+        padding: 15px 70px 5px;
+        color: $dark_gray;
+        text-align: left;
         border-top: 3px solid rgba(0, 0, 0, 0.4);
-        cursor: pointer;
+        // cursor: pointer;
     }
 
     h4 {
-        color: gray;
-        font-size: 150%;
+
+        font-family: $mapc-fonts, Helvetica Neue;
+        color: white;
+        font-size: 200%;
         font-weight: 300;
         text-transform: uppercase;
         margin-bottom: 5px;
         text-shadow: 1px 1px 0 rgba(0, 0, 0, 0.25);
-        height: 60%;
     }
 
-    .notes {
-        font-size: 115%;
-        height: 40%;
+    #content {
+      background: white;
+
+      .category {
+        background: $light_blue;
+
+        padding: 5px 20px 10px;
+
+        h4 {
+          font: 28px/32px $mapc-fonts;
+          color: $map-brown;
+        }
+        .fields {
+          color: white;
+
+          .field {
+            display: block;
+            margin: 0px 10px;
+            padding: 10px;
+            font: 18px/21px $mapc-fonts;
+
+            .name { 
+              display: inline;
+            }
+            .separator{
+              display: inline; 
+            }
+            .value { 
+              display: inline;
+            }
+            a.delete {
+                display: inline;
+                color: $dark_gray;
+                width: 10px;
+                height: 10px;
+                font-size: 14px;
+              &:hover {
+                width: 20px;
+                color: $light_red;
+                cursor: pointer;
+              }
+            }
+          }
+        }
+      }
     }
 
-    &.up {
-        transform: translateY(0);
-        transition: transform .3s ease;
-    }
+    // .notes {
+    //     font-size: 115%;
+    //     height: 40%;
+    // }
+
+    // &.up {
+    //     transform: translateY(0);
+    //     transition: transform .3s ease;
+    // }
 }

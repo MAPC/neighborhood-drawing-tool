@@ -178,10 +178,11 @@ module.exports = {
 
 var Mediator      = require('./mediator').mediator
 
-var QueryManager  = require('./query_manager')
 var DataManager   = require('./data_manager')
-var SelectManager = require('./select_manager')
 var MapManager    = require('./map_manager')
+var QueryManager  = require('./query_manager')
+var SelectManager = require('./select_manager')
+var ReportManager = require('./report_manager')
 var ZoomManager   = require('./zoom_manager')
 
 
@@ -264,6 +265,8 @@ map.on('zoomend', function () {
 
 
 
+var report = ReportManager.init( $('#report'), $('#report#content') )
+
 
 
 
@@ -301,7 +304,7 @@ map.on('zoomend', function () {
 // Mediator.subscribe( 'select_changed', SelectManager.populate_next( args ) )
 // Mediator.subscribe( 'field_changed',  MapManager.change_field( field ) )
 
-},{"./data_manager":1,"./map_manager":4,"./mediator":5,"./query_manager":6,"./select_manager":7,"./zoom_manager":8}],4:[function(require,module,exports){
+},{"./data_manager":1,"./map_manager":4,"./mediator":5,"./query_manager":6,"./report_manager":7,"./select_manager":8,"./zoom_manager":9}],4:[function(require,module,exports){
 /*
 
 MapManager
@@ -538,6 +541,75 @@ var request = function(args) {
 
 module.exports = { meta: meta }
 },{}],7:[function(require,module,exports){
+var report = {}
+
+// Public
+
+var init = function (report_el, content_el) {
+  report         = report_el
+  report.content = content_el
+} // sets up the DOM element, sets private variables for this module to access
+
+
+var add_from_select = function (args) {
+  
+  // given select values, call add_field
+}
+
+
+var add_category = function () {
+  // instead of getting the value of selects to build a field object to query the database with, 
+  // this takes an object of predefined field objects for a category:
+  // those most important fields for a category which can be pared or added to later by the user
+
+  // loops through the object calling ReportManager#add_field
+}
+
+
+// Private
+
+
+var add_field = function (args) {
+  // given table and field names, adds field to report
+  // need schema, data
+  options = {
+      table:   args.table
+    , field:   args.field
+    , schema:  args.schema
+    , geojson: args.geojson
+  }
+  get_summary( options, function (data) { display_field( data ) })
+}
+
+
+var display_field = function (data) {
+  var div = "<div class='report-item'>"
+          + result.name + ": " + result.value
+          + "</div>"
+  report.content.append( div )
+}
+
+
+var get_summary = function (args) {
+  // sum or average the field based on geography / keys
+  var operation = field.alias.indexOf('%') != -1 ? 'AVG' : 'SUM'
+    , query
+    , geojson = args.geojson
+    , keys = geojson_to_keys( geojson )
+    , callback = args.callback
+    , query = "SELECT "+ operation +" t."+ field
+      + " IN "+ keys.join(', ')
+      + " FROM "+ schema +"."+ table +" as t;"
+
+  if (callback) callback() // query result -- see QueryManager
+}
+
+
+var geojson_to_keys = function(geojson) {
+  return _.map(geojson.features, function (feature) {
+    return feature.properties.key })
+}
+},{}],8:[function(require,module,exports){
 var DataManager = require('./data_manager')
 
 // SelectManager.init = function () {
@@ -656,7 +728,7 @@ module.exports = {
     generate_options:  generate_options
   , populate_next: populate_next
 }
-},{"./data_manager":1}],8:[function(require,module,exports){
+},{"./data_manager":1}],9:[function(require,module,exports){
 
 var zoom_config = {
       8:  'municipality'

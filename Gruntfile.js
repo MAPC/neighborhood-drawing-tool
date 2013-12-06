@@ -56,12 +56,20 @@ module.exports = function(grunt) {
       scripts: {
         files: ['<%= jshint.src %>'],
         tasks: ['browserify'],  // 'jshint', 'mocha', 
-        options: { livereload: { port: 9000 }, atBegin: true }
+        options: { atBegin: true },
+        livereload: {
+          options: { livereload: true },
+          files: ['<%= jshint.src %>'],
+        }
       },
       styles: {
         files: ['styles/*.scss'],
         tasks: ['sass'],
-        options: { livereload: { port: 9000 }, atBegin: true }
+        options: { atBegin: true },
+        livereload: {
+          options: { livereload: true },
+          files: ['styles/*.scss'],
+        }
       }
     }
   });
