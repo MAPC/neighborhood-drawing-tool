@@ -111,6 +111,10 @@ label:before {
     cursor: pointer;
     text-decoration: underline;
   }
+  a {
+    position: relative;
+    top: -65px;
+  }
   select {
     position: relative;
     top: -70px;

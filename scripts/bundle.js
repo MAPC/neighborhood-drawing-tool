@@ -192,7 +192,18 @@ DataManager.get_topics( function (topics) {
 
 
 $('select').on('change', function() {
-  SelectManager.populate_next( $(this) ) })
+  SelectManager.populate_next( $(this) )
+})
+
+$('select#topic, select#table').on('change', function() {
+  $(this).next('span').html('working')
+  $(this).hide
+})
+
+$('span#topic, span#select').on('change', function() {
+  $(this).prev('select').show()
+  $(this).html('')
+})
 
 
 $('select#field').on('change', function () {
@@ -703,7 +714,7 @@ var options_from_hash = function (pairs, opts) {
 
 var populate_next = function (obj) {
   var value = obj.val()
-    , next  = obj.next()
+    , next  = obj.next( 'select' )
     , id    = obj.attr('id')
     , opts  = {}
 
@@ -712,7 +723,7 @@ var populate_next = function (obj) {
   // console.log('value ' + value)      ; console.log('id ' + id)
   // console.log('next ')               ; console.log(next)
   // console.log('-------------------')
-  
+
   switch (id) {
     case 'topic':
       opts = {text: 'title', value: 'name'}
@@ -727,7 +738,7 @@ var populate_next = function (obj) {
       }})
       opts_geo = {text: 'title', value: 'name'}
       DataManager.get_geographies({table: value, callback: function (pairs) {
-        next.next().html( generate_options(pairs, opts_geo) )
+        next.next().next().html( generate_options(pairs, opts_geo) )
       }})
       break;
   }

@@ -83,6 +83,9 @@ label:before {
   #title-bar span {
     cursor: pointer;
     text-decoration: underline; }
+  #title-bar a {
+    position: relative;
+    top: -65px; }
   #title-bar select {
     position: relative;
     top: -70px;
