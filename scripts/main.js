@@ -16,7 +16,8 @@ DataManager.get_topics( function (topics) {
 
 
 $('select').on('change', function() {
-  SelectManager.populate_next( $(this) ) })
+  SelectManager.populate_next( $(this) )
+})
 
 
 $('select#field').on('change', function () {
@@ -85,13 +86,36 @@ map.on('zoomend', function () {
   })
 })
 
+$('select#field, select#geography').on('change', function() {
+  var selected = $(this).find(':selected')
+  selected = $(selected).text()
+  $(this).next('a').html( selected )
+  $(this).hide()
+  console.log('selected.length')
+  console.log(selected.length)
+  if(selected.length > 45){
+    console.log('======== longer')
+    console.log($('#title-bar a'))
+    $('#title-bar a').css('font-size-adjust', '0.3')
+  } else {
+    console.log('======== shorter')
+    $('#title-bar a').css('font-size-adjust', '0.0')
+  }
+  if($(this).attr('id') !== 'geography') $('select#geography').trigger('change')
+})
+
+$('a#field, a#geography').on('click', function() {
+  $(this).prev().show()
+  $(this).html('')
+})
 
 
 
 
-// var report = ReportManager.init( $('#report'), $('#report#content') )
 
-
+var report = ReportManager.init( $('#report'), $('#content') )
+console.log(report.content)
+ReportManager.display_report(report.content)
 
 
 

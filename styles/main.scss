@@ -1,9 +1,6 @@
 /*
 
-  
-
 */
-
 
 $map-brown: #EDECE2;
 $dark_gray: #2d2d2d;
@@ -114,6 +111,10 @@ label:before {
   a {
     position: relative;
     top: -65px;
+    color: #FFF;
+    .small {
+      font-size: 10px;
+    }
   }
   select {
     position: relative;

@@ -1,4 +1,4 @@
-[
+report_sets = [
   { category: 'transportation',
     data: [
     {
@@ -6,7 +6,7 @@
       fields: ['ctv_p', 'pubtran_p', 'bicycle_p', 'walk_p', 'other_p'] },
     {
       table: 'travel_time_to_work', 
-      fields: ['mlt15_p', 'mlt15_30_p', 'mlt30_45_p', 'mlt45_60_p', 'm60ovr_p'] },
+      fields: ['mlt15_p', 'm15_30_p', 'm30_45_p', 'm45_60_p', 'm60ovr_p'] },
     {
       table: 'vehicles_per_household', 
       fields: ['c0_p', 'c1_p', 'c2_p', 'c3p_p'] }
@@ -48,13 +48,7 @@
       table: 'educational_attainment_25_years', 
       fields: ['lths_p', 'hs_p', 'some_c_p', 'assocba_p', 'prof_p'] }
     ]},
-
-
 ]
 
 
-
-
-
-
-
+module.exports = { report_sets: report_sets }

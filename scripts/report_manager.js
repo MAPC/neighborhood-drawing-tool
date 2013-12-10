@@ -1,37 +1,114 @@
 var report = {}
-  , config
+
+
+var mock_report = [
+  {
+    "category": "transportation",
+    "fields": [
+      {
+        "title": "% Car",
+        "value": 20
+      },
+      {
+        "title": "% Public Transit",
+        "value": 60
+      },
+      {
+        "title": "% Bike or Walk",
+        "value": 20
+      }
+    ]
+  },
+  {
+    "category": "economy",
+    "fields": [
+      {
+        "title": "% Households in Poverty",
+        "value": 18
+      },
+      {
+        "title": "% Unemployed",
+        "value": 6
+      },
+      {
+        "title": "Total Unemployed",
+        "value": 212
+      }
+    ]
+  }
+]
+
+
 
 // Public
 
 var init = function (report_el, content_el) {
-  report         = report_el
-  report.content = content_el
+  report.container = report_el
+  report.content   = content_el
+  return report
 } // sets up the DOM element, sets private variables for this module to access
 
 
-var add_from_select = function (args) {
-  
-  // given select values, call add_field
-}
+var display_report = function (content_el) {
+  _.each(mock_report, function(category){
 
+    // create an empty category div
+    category_div = makeCategoryDiv(category.category)
+    $(content_el).append(category_div)
 
-var add_category = function () {
-  // instead of getting the value of selects to build a field object to query the database with, 
-  // this takes an object of predefined field objects for a category:
-  // those most important fields for a category which can be pared or added to later by the user
+    var header ='<h4>'+ category.category +'</h4>'
+    var id = '#' + category.category
+    console.log('ID: ' + id)
+    $(id).append(header);
 
-  // loops through the object calling ReportManager#add_field
-  category = config.categories.transportation
-  _.forEach(category.data, function (set) {
-    _.forEach(set.fields, function (field) {
+    console.log("START CATEGORY")
+    console.log(category_div)
+    // fill it with fields
+    _.each(category.fields, function (field) {
+      field_div = makeFieldDiv({
+          title: field.title
+        , value: field.value
+      })
+
+      console.log('field_div')
+      console.log(field_div)
+      $(id).append(field_div)
       
-      add_field({ table: set.table, field: field })
     })
   })
 }
 
 
+
+module.exports = {
+    init:           init
+  , display_report: display_report
+}
+
+
 // Private
+
+
+var makeCategoryDiv = function (id) {
+  var div = '<div class="category" id="'+ id +'"></div>'
+  return div
+}
+
+
+var makeFieldDiv = function (args) {
+  var div = '<div class="field">'
+      div = div + '<div class="name">'+ args.title +'</div>'
+      div = div + '<div class="separator">:</div>'
+      div = div + '<div class="value">'+ args.value +'</div>'
+      div = div + '<a class="delete">delete</a>'
+      div = div + '</div>'
+  return div
+}
+
+
+var clear = function () {
+  report.content.empty()
+}
 
 
 var add_field = function (args) {
@@ -47,9 +124,12 @@ var add_field = function (args) {
 }
 
 
-var display_field = function (data) {
-  var div = "<div class='report-item'>"
-          + result.name + ": " + result.value
+var display_field = function (result) {
+  var div = "<div class='field'>"
+          +   "<div class='name'>"+ result.name +"</div>"
+          +   "<div class='separator'>:</div>"
+          +   "<div class='value'>"+ result.value +"</div>"
+          +   "<a class='delete'>delete</a>"
           + "</div>"
   report.content.append( div )
 }
@@ -57,16 +137,12 @@ var display_field = function (data) {
 
 var get_summary = function (args) {
   // sum or average the field based on geography / keys
-  var operation = field.alias.indexOf('%') != -1 ? 'AVG' : 'SUM'
-    , query
-    , geojson  = args.geojson
-    , keys     = geojson_to_keys( geojson )
-    , callback = args.callback
-    , query = "SELECT "+ operation +" t."+ field
-      + " IN "+ keys.join(', ')
-      + " FROM "+ schema +"."+ table +" as t;"
-
-  if (callback) callback() // query result -- see QueryManager
+  var geojson   = args.geojson
+    , keys      = geojson_to_keys( geojson )
+    // , 
+    , callback  = args.callback
+    // , suffix    = 
+  // if (callback) callback() // query result -- see QueryManager
 }
 
 

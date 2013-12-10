@@ -19,7 +19,8 @@ var table, field, geography, study_area
       "MAPC Basemap": tiles }
   , over_layers  = {
       "Map Extent": extent_layer,
-      "Study Area": drawing_layer }
+      "Study Area": study_layer,
+      "Drawing": drawing_layer }
 
 
 var layer_control = L.control.layers(base_layers, over_layers)
@@ -129,8 +130,6 @@ module.exports = {
 var get_layer = function(args) {
   console.log('global#get_layer')
   
-  // args.geography = 'ma_census_tracts'
-
   var base_url = 'http://localhost:2474/geographic/spatial/'
     , url = base_url + args.geography + '/tabular/' + args.table + '/' + field + '/intersect'
     , polygon = args.polygon

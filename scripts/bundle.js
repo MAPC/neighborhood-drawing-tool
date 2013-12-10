@@ -195,16 +195,6 @@ $('select').on('change', function() {
   SelectManager.populate_next( $(this) )
 })
 
-$('select#topic, select#table').on('change', function() {
-  $(this).next('span').html('working')
-  $(this).hide
-})
-
-$('span#topic, span#select').on('change', function() {
-  $(this).prev('select').show()
-  $(this).html('')
-})
-
 
 $('select#field').on('change', function () {
   var field = $(this).val()
@@ -272,13 +262,36 @@ map.on('zoomend', function () {
   })
 })
 
+$('select#field, select#geography').on('change', function() {
+  var selected = $(this).find(':selected')
+  selected = $(selected).text()
+  $(this).next('a').html( selected )
+  $(this).hide()
+  console.log('selected.length')
+  console.log(selected.length)
+  if(selected.length > 45){
+    console.log('======== longer')
+    console.log($('#title-bar a'))
+    $('#title-bar a').css('font-size-adjust', '0.3')
+  } else {
+    console.log('======== shorter')
+    $('#title-bar a').css('font-size-adjust', '0.0')
+  }
+  if($(this).attr('id') !== 'geography') $('select#geography').trigger('change')
+})
+
+$('a#field, a#geography').on('click', function() {
+  $(this).prev().show()
+  $(this).html('')
+})
 
 
 
 
-// var report = ReportManager.init( $('#report'), $('#report#content') )
 
-
+var report = ReportManager.init( $('#report'), $('#content') )
+console.log(report.content)
+ReportManager.display_report(report.content)
 
 
 
@@ -337,7 +350,8 @@ var table, field, geography, study_area
       "MAPC Basemap": tiles }
   , over_layers  = {
       "Map Extent": extent_layer,
-      "Study Area": drawing_layer }
+      "Study Area": study_layer,
+      "Drawing": drawing_layer }
 
 
 var layer_control = L.control.layers(base_layers, over_layers)
@@ -447,8 +461,6 @@ module.exports = {
 var get_layer = function(args) {
   console.log('global#get_layer')
   
-  // args.geography = 'ma_census_tracts'
-
   var base_url = 'http://localhost:2474/geographic/spatial/'
     , url = base_url + args.geography + '/tabular/' + args.table + '/' + field + '/intersect'
     , polygon = args.polygon
@@ -553,39 +565,116 @@ var request = function(args) {
 module.exports = { meta: meta }
 },{}],7:[function(require,module,exports){
 var report = {}
-  , config
+
+
+var mock_report = [
+  {
+    "category": "transportation",
+    "fields": [
+      {
+        "title": "% Car",
+        "value": 20
+      },
+      {
+        "title": "% Public Transit",
+        "value": 60
+      },
+      {
+        "title": "% Bike or Walk",
+        "value": 20
+      }
+    ]
+  },
+  {
+    "category": "economy",
+    "fields": [
+      {
+        "title": "% Households in Poverty",
+        "value": 18
+      },
+      {
+        "title": "% Unemployed",
+        "value": 6
+      },
+      {
+        "title": "Total Unemployed",
+        "value": 212
+      }
+    ]
+  }
+]
+
+
 
 // Public
 
 var init = function (report_el, content_el) {
-  report         = report_el
-  report.content = content_el
+  report.container = report_el
+  report.content   = content_el
+  return report
 } // sets up the DOM element, sets private variables for this module to access
 
 
-var add_from_select = function (args) {
-  
-  // given select values, call add_field
-}
+var display_report = function (content_el) {
+  _.each(mock_report, function(category){
 
+    // create an empty category div
+    category_div = makeCategoryDiv(category.category)
+    $(content_el).append(category_div)
 
-var add_category = function () {
-  // instead of getting the value of selects to build a field object to query the database with, 
-  // this takes an object of predefined field objects for a category:
-  // those most important fields for a category which can be pared or added to later by the user
+    var header ='<h4>'+ category.category +'</h4>'
+    var id = '#' + category.category
+    console.log('ID: ' + id)
+    $(id).append(header);
 
-  // loops through the object calling ReportManager#add_field
-  category = config.categories.transportation
-  _.forEach(category.data, function (set) {
-    _.forEach(set.fields, function (field) {
+    console.log("START CATEGORY")
+    console.log(category_div)
+    // fill it with fields
+    _.each(category.fields, function (field) {
+      field_div = makeFieldDiv({
+          title: field.title
+        , value: field.value
+      })
+
+      console.log('field_div')
+      console.log(field_div)
+      $(id).append(field_div)
       
-      add_field({ table: set.table, field: field })
     })
   })
 }
 
 
+
+module.exports = {
+    init:           init
+  , display_report: display_report
+}
+
+
 // Private
+
+
+var makeCategoryDiv = function (id) {
+  var div = '<div class="category" id="'+ id +'"></div>'
+  return div
+}
+
+
+var makeFieldDiv = function (args) {
+  var div = '<div class="field">'
+      div = div + '<div class="name">'+ args.title +'</div>'
+      div = div + '<div class="separator">:</div>'
+      div = div + '<div class="value">'+ args.value +'</div>'
+      div = div + '<a class="delete">delete</a>'
+      div = div + '</div>'
+  return div
+}
+
+
+var clear = function () {
+  report.content.empty()
+}
 
 
 var add_field = function (args) {
@@ -601,9 +690,12 @@ var add_field = function (args) {
 }
 
 
-var display_field = function (data) {
-  var div = "<div class='report-item'>"
-          + result.name + ": " + result.value
+var display_field = function (result) {
+  var div = "<div class='field'>"
+          +   "<div class='name'>"+ result.name +"</div>"
+          +   "<div class='separator'>:</div>"
+          +   "<div class='value'>"+ result.value +"</div>"
+          +   "<a class='delete'>delete</a>"
           + "</div>"
   report.content.append( div )
 }
@@ -611,16 +703,12 @@ var display_field = function (data) {
 
 var get_summary = function (args) {
   // sum or average the field based on geography / keys
-  var operation = field.alias.indexOf('%') != -1 ? 'AVG' : 'SUM'
-    , query
-    , geojson  = args.geojson
-    , keys     = geojson_to_keys( geojson )
-    , callback = args.callback
-    , query = "SELECT "+ operation +" t."+ field
-      + " IN "+ keys.join(', ')
-      + " FROM "+ schema +"."+ table +" as t;"
-
-  if (callback) callback() // query result -- see QueryManager
+  var geojson   = args.geojson
+    , keys      = geojson_to_keys( geojson )
+    // , 
+    , callback  = args.callback
+    // , suffix    = 
+  // if (callback) callback() // query result -- see QueryManager
 }
 
 
@@ -738,7 +826,7 @@ var populate_next = function (obj) {
       }})
       opts_geo = {text: 'title', value: 'name'}
       DataManager.get_geographies({table: value, callback: function (pairs) {
-        next.next().next().html( generate_options(pairs, opts_geo) )
+        $('select#geography').html( generate_options(pairs, opts_geo) )
       }})
       break;
   }

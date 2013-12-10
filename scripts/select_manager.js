@@ -107,7 +107,7 @@ var populate_next = function (obj) {
       }})
       opts_geo = {text: 'title', value: 'name'}
       DataManager.get_geographies({table: value, callback: function (pairs) {
-        next.next().next().html( generate_options(pairs, opts_geo) )
+        $('select#geography').html( generate_options(pairs, opts_geo) )
       }})
       break;
   }

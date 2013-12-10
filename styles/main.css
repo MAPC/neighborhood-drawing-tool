@@ -1,7 +1,5 @@
 /*
 
-  
-
 */
 /* by Damoin Yeatman
    http://cssdeck.com/labs/styling-select-box-with-css3 
@@ -85,7 +83,10 @@ label:before {
     text-decoration: underline; }
   #title-bar a {
     position: relative;
-    top: -65px; }
+    top: -65px;
+    color: #FFF; }
+    #title-bar a .small {
+      font-size: 10px; }
   #title-bar select {
     position: relative;
     top: -70px;
