@@ -59,11 +59,14 @@ var display_report = function (content_el) {
 
 
 var display_category = function (category, content_el) {
-  category_div = makeCategoryDiv(category.category)
+  var category_name = category.category
+  var category_div = makeCategoryDiv(category_name)
   $(content_el).append(category_div)
+  report.content[category_name] = {}
+  report.content[category_name].fields = $(category_div)
 
-  var header ='<h4>'+ category.category +'</h4>'
-    , fields_div = '#' + category.category + ' .fields'
+  var header ='<h4>'+ category_name +'</h4>'
+    , fields_div = '#' + category_name + ' .fields'
     , fields_div = $(fields_div)
   
   fields_div.append(header);
@@ -76,21 +79,21 @@ var display_category = function (category, content_el) {
 
 
 var display_single_field = function (category_div, field) {
+  // console.log("display_single_field")
+  // console.log( category_div.parent().attr('id') )
+  // console.log(field)
   field_div = makeFieldDiv({
       title: field.title
     , value: field.value
   })
-
-  console.log('field_div')
-  console.log(field_div)
   category_div.append(field_div)
-  
 }
 
 
 module.exports = {
     init:           init
   , display_report: display_report
+  , display_single_field:  display_single_field
 }
 
 

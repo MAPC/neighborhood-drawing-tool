@@ -114,9 +114,10 @@ $('a#field, a#geography').on('click', function() {
 
 
 var report = ReportManager.init( $('#report'), $('#content') )
-console.log(report.content)
 ReportManager.display_report(report.content)
 
+
+ReportManager.display_single_field( $("#report #transportation .fields"), {title: 'Test', value: '12'} )
 
 
 // This is more what I imagined but it did not turn out that way. VVV
