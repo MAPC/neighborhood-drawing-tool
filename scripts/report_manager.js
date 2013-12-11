@@ -52,33 +52,40 @@ var init = function (report_el, content_el) {
 var display_report = function (content_el) {
   _.each(mock_report, function(category){
 
-    // create an empty category div
-    category_div = makeCategoryDiv(category.category)
-    $(content_el).append(category_div)
+    display_category(category, content_el)
 
-    var header ='<h4>'+ category.category +'</h4>'
-    var id = '#' + category.category + ' .fields'
-    console.log('ID: ' + id)
-    console.log($(id))
-    $(id).append(header);
-
-    console.log("START CATEGORY")
-    console.log(category_div)
-    // fill it with fields
-    _.each(category.fields, function (field) {
-      field_div = makeFieldDiv({
-          title: field.title
-        , value: field.value
-      })
-
-      console.log('field_div')
-      console.log(field_div)
-      $(id).append(field_div)
-      
-    })
   })
 }
 
+
+var display_category = function (category, content_el) {
+  category_div = makeCategoryDiv(category.category)
+  $(content_el).append(category_div)
+
+  var header ='<h4>'+ category.category +'</h4>'
+    , fields_div = '#' + category.category + ' .fields'
+    , fields_div = $(fields_div)
+  
+  fields_div.append(header);
+
+  // fill it with fields
+  _.each(category.fields, function (field) {
+    display_single_field( fields_div, field )
+  })  
+}
+
+
+var display_single_field = function (category_div, field) {
+  field_div = makeFieldDiv({
+      title: field.title
+    , value: field.value
+  })
+
+  console.log('field_div')
+  console.log(field_div)
+  category_div.append(field_div)
+  
+}
 
 
 module.exports = {
