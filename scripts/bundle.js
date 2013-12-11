@@ -623,8 +623,9 @@ var display_report = function (content_el) {
     $(content_el).append(category_div)
 
     var header ='<h4>'+ category.category +'</h4>'
-    var id = '#' + category.category
+    var id = '#' + category.category + ' .fields'
     console.log('ID: ' + id)
+    console.log($(id))
     $(id).append(header);
 
     console.log("START CATEGORY")
@@ -656,7 +657,7 @@ module.exports = {
 
 
 var makeCategoryDiv = function (id) {
-  var div = '<div class="category" id="'+ id +'"></div>'
+  var div = '<div class="category" id="'+ id +'"><div class="fields"></div></div>'
   return div
 }
 
