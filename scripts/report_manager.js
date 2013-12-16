@@ -32,7 +32,11 @@ var request_category = function(category_name, element) {
     , method:   'POST'
     , data:     data
     , callback: function(data) { 
-      display_category(data[category_name], element) }
+        display_category(data[category_name], element)
+        $('a.delete').on('click', function () { 
+          console.log( $(this).parent().remove() )
+        })
+      }
   })
 }
 

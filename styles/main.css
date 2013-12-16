@@ -167,7 +167,7 @@ from Leaflet tutorial http://leafletjs.com/examples/choropleth.html
         color: white; }
         #report #content .category .fields .field {
           display: block;
-          width: 30%;
+          width: 90%;
           margin: 0px 10px;
           padding: 10px;
           font: 18px/21px Rockwell, Goudy Old Style, Franklin Gothic Book, TW Cent MT; }

@@ -121,12 +121,9 @@ var report = ReportManager.init( $('#report'), $('#content') )
 $('#add-report-topic').on('click', function() {
   var selected = $('select#report-topic').find(':selected')
   var value    = selected.val().toLowerCase()
-  console.log('!!! ADD REPORT TOPIC')
-  console.log(value)
   ReportManager.request_category(value, $('#report #content') )
 })
 
-// ReportManager.request_category('economy', $('#report #content') )
 
 // ReportManager.display_report(report.content)
 // ReportManager.display_single_field( $("#report #transportation .fields"), {title: 'Test', value: '12'} )
