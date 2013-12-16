@@ -243,7 +243,10 @@ var ZoomManager   = require('./zoom_manager')
 
 DataManager.get_topics( function (topics) {
   $('select#topic').html(
-    SelectManager.generate_options(topics) )  })
+    SelectManager.generate_options(topics) )
+
+  $('select#report-topic').html(
+    SelectManager.generate_options(topics) ) })
 
 
 $('select').on('change', function() {
@@ -345,7 +348,16 @@ $('a#field, a#geography').on('click', function() {
 
 
 var report = ReportManager.init( $('#report'), $('#content') )
-ReportManager.request_category('economy', $('#report #content') )
+
+$('#add-report-topic').on('click', function() {
+  var selected = $('select#report-topic').find(':selected')
+  var value    = selected.val().toLowerCase()
+  console.log('!!! ADD REPORT TOPIC')
+  console.log(value)
+  ReportManager.request_category(value, $('#report #content') )
+})
+
+// ReportManager.request_category('economy', $('#report #content') )
 
 // ReportManager.display_report(report.content)
 // ReportManager.display_single_field( $("#report #transportation .fields"), {title: 'Test', value: '12'} )
