@@ -1,4 +1,59 @@
 ;(function e(t,n,r){function s(o,u){if(!n[o]){if(!t[o]){var a=typeof require=="function"&&require;if(!u&&a)return a(o,!0);if(i)return i(o,!0);throw new Error("Cannot find module '"+o+"'")}var f=n[o]={exports:{}};t[o][0].call(f.exports,function(e){var n=t[o][1][e];return s(n?n:e)},f,f.exports,e,t,n,r)}return n[o].exports}var i=typeof require=="function"&&require;for(var o=0;o<r.length;o++)s(r[o]);return s})({1:[function(require,module,exports){
+report_sets = {
+  transportation: { category: 'transportation',
+    data: [
+    {
+      table: 'means_transportation_to_work_by_residence', 
+      fields: ['ctv_p', 'pubtran_p', 'bicycle_p', 'walk_p', 'other_p'] },
+    {
+      table: 'travel_time_to_work', 
+      fields: ['mlt15_p', 'm15_30_p', 'm30_45_p', 'm45_60_p', 'm60ovr_p'] },
+    {
+      table: 'vehicles_per_household', 
+      fields: ['c0_p', 'c1_p', 'c2_p', 'c3p_p'] }
+    ]},
+
+  economy: { category: 'economy',
+    data: [
+    {
+      table: 'poverty_by_household_type', 
+      fields: ['pov_hh', 'pov_hh_p'] },
+    {
+      table: 'unemployment', 
+      fields: ['tot_lf', 'emp_lf', 'unemp_num', 'unemp_rt'] }
+    ]},
+
+  housing: { category: 'housing',
+    data: [
+    {
+      table: 'housing_cost_burden', 
+      fields: ['cb_3050_p', 'cb_50_p'] },
+    {
+      table: 'rent', 
+      fields: ['med_c_r'] },
+    {
+      table: 'housing_tenure', 
+      fields: ['sf_p', 'mf_p', 'oth_p', 'r_hu_p'] }
+    ]},
+
+  demographics: { category: 'demographics',
+    data: [
+    {
+      table: 'mobility_in_migration', 
+      fields: ['same_p', 'diff_p', 'abroad_p'] }
+    ]},
+
+  education: { category: 'education',
+    data: [
+    {
+      table: 'educational_attainment_25_years', 
+      fields: ['lths_p', 'hs_p', 'some_c_p', 'assocba_p', 'prof_p'] }
+    ]},
+}
+
+
+module.exports = { report_sets: report_sets }
+},{}],2:[function(require,module,exports){
 var QueryManager = require('./query_manager')
 
 var get_topics = function (callback) {
@@ -65,7 +120,7 @@ module.exports = {
   , get_fields:  get_fields
   , get_geographies: get_geographies 
 }
-},{"./query_manager":6}],2:[function(require,module,exports){
+},{"./query_manager":7}],3:[function(require,module,exports){
 /*
 
 LegendManager
@@ -173,7 +228,7 @@ module.exports = {
     set_legend: set_legend
   , style: style
 }
-},{}],3:[function(require,module,exports){
+},{}],4:[function(require,module,exports){
 
 
 var Mediator      = require('./mediator').mediator
@@ -290,10 +345,12 @@ $('a#field, a#geography').on('click', function() {
 
 
 var report = ReportManager.init( $('#report'), $('#content') )
-ReportManager.display_report(report.content)
+ReportManager.request_category('economy', $('#report #content') )
+
+// ReportManager.display_report(report.content)
+// ReportManager.display_single_field( $("#report #transportation .fields"), {title: 'Test', value: '12'} )
 
 
-ReportManager.display_single_field( $("#report #transportation .fields"), {title: 'Test', value: '12'} )
 
 
 // This is more what I imagined but it did not turn out that way. VVV
@@ -329,7 +386,7 @@ ReportManager.display_single_field( $("#report #transportation .fields"), {title
 // Mediator.subscribe( 'select_changed', SelectManager.populate_next( args ) )
 // Mediator.subscribe( 'field_changed',  MapManager.change_field( field ) )
 
-},{"./data_manager":1,"./map_manager":4,"./mediator":5,"./query_manager":6,"./report_manager":7,"./select_manager":8,"./zoom_manager":9}],4:[function(require,module,exports){
+},{"./data_manager":2,"./map_manager":5,"./mediator":6,"./query_manager":7,"./report_manager":8,"./select_manager":9,"./zoom_manager":10}],5:[function(require,module,exports){
 /*
 
 MapManager
@@ -483,7 +540,7 @@ var get_layer = function(args) {
         console.log("ERROR")
         console.log(e) } })
 }
-},{"./legend_manager":2}],5:[function(require,module,exports){
+},{"./legend_manager":3}],6:[function(require,module,exports){
 /*
   
   Mediator implementation
@@ -522,7 +579,7 @@ var mediator = (function(){
 }());
 
 module.exports = { mediator: mediator }
-},{}],6:[function(require,module,exports){
+},{}],7:[function(require,module,exports){
 var api_base = 'http://localhost:2474'
 
 var meta = function () {
@@ -538,8 +595,8 @@ var meta = function () {
 
 var request = function(args) {
   var callback = args['callback']
-  // console.log('QueryManager#request with args: ')
-  // console.log(args)
+  console.log('QueryManager#request with args: ')
+  console.log(args)
   var base = args['api_base']   || api_base
     , path = args['path']       || '/'
     , opts = args['query_args'] || ''
@@ -552,9 +609,10 @@ var request = function(args) {
   $.ajax({
     url: url,
     type: type,
+    data: data,
     success: function (data) {
-      // console.log( 'SUCCESS: ' )
-      // console.log( data )
+      console.log( 'SUCCESS: ' )
+      console.log( data )
       if (callback) callback(data)
       },
     error: function (e) {
@@ -563,48 +621,12 @@ var request = function(args) {
   })
 }
 
-module.exports = { meta: meta }
-},{}],7:[function(require,module,exports){
+module.exports = {   meta: meta
+                   , request: request }
+},{}],8:[function(require,module,exports){
 var report = {}
-
-
-var mock_report = [
-  {
-    "category": "transportation",
-    "fields": [
-      {
-        "title": "% Car",
-        "value": 20
-      },
-      {
-        "title": "% Public Transit",
-        "value": 60
-      },
-      {
-        "title": "% Bike or Walk",
-        "value": 20
-      }
-    ]
-  },
-  {
-    "category": "economy",
-    "fields": [
-      {
-        "title": "% Households in Poverty",
-        "value": 18
-      },
-      {
-        "title": "% Unemployed",
-        "value": 6
-      },
-      {
-        "title": "Total Unemployed",
-        "value": 212
-      }
-    ]
-  }
-]
-
+  , categories = require('./config.js').report_sets
+  , QueryManager = require('./query_manager')
 
 
 // Public
@@ -617,10 +639,26 @@ var init = function (report_el, content_el) {
 
 
 var display_report = function (content_el) {
-  _.each(mock_report, function(category){
+  _.each(categories, function(category){
 
     display_category(category, content_el)
 
+  })
+}
+
+
+
+var request_category = function(category_name, element) {
+  var data = {
+      category: categories[category_name]
+    , keys: [19, 21]
+    , summary_level: 'municipality'}
+  QueryManager.request({
+      path:     '/report'
+    , method:   'POST'
+    , data:     data
+    , callback: function(data) { 
+      display_category(data[category_name], element) }
   })
 }
 
@@ -632,7 +670,7 @@ var display_category = function (category, content_el) {
   report.content[category_name] = {}
   report.content[category_name].fields = $(category_div)
 
-  var header ='<h4>'+ category_name +'</h4>'
+  var header ='<h4>'+ category_name +'</h4><a class="delete">delete</a>'
     , fields_div = '#' + category_name + ' .fields'
     , fields_div = $(fields_div)
   
@@ -646,12 +684,9 @@ var display_category = function (category, content_el) {
 
 
 var display_single_field = function (category_div, field) {
-  // console.log("display_single_field")
-  // console.log( category_div.parent().attr('id') )
-  // console.log(field)
   field_div = makeFieldDiv({
       title: field.title
-    , value: field.value
+    , value: parseFloat(field.value).toFixed(2)
   })
   category_div.append(field_div)
 }
@@ -660,6 +695,8 @@ var display_single_field = function (category_div, field) {
 module.exports = {
     init:           init
   , display_report: display_report
+  , display_category: display_category
+  , request_category: request_category
   , display_single_field:  display_single_field
 }
 
@@ -728,7 +765,7 @@ var geojson_to_keys = function(geojson) {
   return _.map(geojson.features, function (feature) {
     return feature.properties.key })
 }
-},{}],8:[function(require,module,exports){
+},{"./config.js":1,"./query_manager":7}],9:[function(require,module,exports){
 var DataManager = require('./data_manager')
 
 // SelectManager.init = function () {
@@ -849,7 +886,7 @@ module.exports = {
     generate_options:  generate_options
   , populate_next: populate_next
 }
-},{"./data_manager":1}],9:[function(require,module,exports){
+},{"./data_manager":2}],10:[function(require,module,exports){
 
 var zoom_config = {
       8:  'municipality'
@@ -904,5 +941,5 @@ var appropriate_sumlev = function (map, sumlevs) {
 module.exports = {
   appropriate_sumlev: appropriate_sumlev
 }
-},{}]},{},[3])
+},{}]},{},[4])
 ;

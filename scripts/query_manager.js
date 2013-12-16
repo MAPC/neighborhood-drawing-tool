@@ -13,8 +13,8 @@ var meta = function () {
 
 var request = function(args) {
   var callback = args['callback']
-  // console.log('QueryManager#request with args: ')
-  // console.log(args)
+  console.log('QueryManager#request with args: ')
+  console.log(args)
   var base = args['api_base']   || api_base
     , path = args['path']       || '/'
     , opts = args['query_args'] || ''
@@ -27,9 +27,10 @@ var request = function(args) {
   $.ajax({
     url: url,
     type: type,
+    data: data,
     success: function (data) {
-      // console.log( 'SUCCESS: ' )
-      // console.log( data )
+      console.log( 'SUCCESS: ' )
+      console.log( data )
       if (callback) callback(data)
       },
     error: function (e) {
@@ -38,4 +39,5 @@ var request = function(args) {
   })
 }
 
-module.exports = { meta: meta }
+module.exports = {   meta: meta
+                   , request: request }

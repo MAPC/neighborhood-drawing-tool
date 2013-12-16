@@ -1,43 +1,6 @@
 var report = {}
-
-
-var mock_report = [
-  {
-    "category": "transportation",
-    "fields": [
-      {
-        "title": "% Car",
-        "value": 20
-      },
-      {
-        "title": "% Public Transit",
-        "value": 60
-      },
-      {
-        "title": "% Bike or Walk",
-        "value": 20
-      }
-    ]
-  },
-  {
-    "category": "economy",
-    "fields": [
-      {
-        "title": "% Households in Poverty",
-        "value": 18
-      },
-      {
-        "title": "% Unemployed",
-        "value": 6
-      },
-      {
-        "title": "Total Unemployed",
-        "value": 212
-      }
-    ]
-  }
-]
-
+  , categories = require('./config.js').report_sets
+  , QueryManager = require('./query_manager')
 
 
 // Public
@@ -50,10 +13,26 @@ var init = function (report_el, content_el) {
 
 
 var display_report = function (content_el) {
-  _.each(mock_report, function(category){
+  _.each(categories, function(category){
 
     display_category(category, content_el)
 
+  })
+}
+
+
+
+var request_category = function(category_name, element) {
+  var data = {
+      category: categories[category_name]
+    , keys: [19, 21]
+    , summary_level: 'municipality'}
+  QueryManager.request({
+      path:     '/report'
+    , method:   'POST'
+    , data:     data
+    , callback: function(data) { 
+      display_category(data[category_name], element) }
   })
 }
 
@@ -65,7 +44,7 @@ var display_category = function (category, content_el) {
   report.content[category_name] = {}
   report.content[category_name].fields = $(category_div)
 
-  var header ='<h4>'+ category_name +'</h4>'
+  var header ='<h4>'+ category_name +'</h4><a class="delete">delete</a>'
     , fields_div = '#' + category_name + ' .fields'
     , fields_div = $(fields_div)
   
@@ -79,12 +58,9 @@ var display_category = function (category, content_el) {
 
 
 var display_single_field = function (category_div, field) {
-  // console.log("display_single_field")
-  // console.log( category_div.parent().attr('id') )
-  // console.log(field)
   field_div = makeFieldDiv({
       title: field.title
-    , value: field.value
+    , value: parseFloat(field.value).toFixed(2)
   })
   category_div.append(field_div)
 }
@@ -93,6 +69,8 @@ var display_single_field = function (category_div, field) {
 module.exports = {
     init:           init
   , display_report: display_report
+  , display_category: display_category
+  , request_category: request_category
   , display_single_field:  display_single_field
 }
 
