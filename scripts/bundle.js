@@ -356,6 +356,13 @@ $('#add-report-topic').on('click', function() {
 })
 
 
+$('#add-this-field').on('click', function() {
+  console.log('the click')
+  ReportManager.request_field()
+})
+
+
+
 // ReportManager.display_report(report.content)
 // ReportManager.display_single_field( $("#report #transportation .fields"), {title: 'Test', value: '12'} )
 
@@ -656,6 +663,30 @@ var display_report = function (content_el) {
 }
 
 
+var request_field = function (args) {
+  if (typeof args === 'undefined') { args = {} }
+  var category_div = args.category_div  || $('#report')
+  var data = {
+        table:         args.table || 'means_transportation_to_work_by_residence'
+      , keys:          args.keys          || [19, 21]
+      , summary_level: args.summary_level || 'municipality'
+      , field:         args.field || 'ctv_p' 
+  }
+
+  console.log('ReportManager#request_field')
+  console.log(data)
+
+  QueryManager.request({
+      path:   '/report/field'
+    , method: 'POST'
+    , data:   data
+    , callback: function (data) { 
+      display_single_field(category_div, data)
+    }
+  })
+}
+
+
 
 var request_category = function(category_name, element) {
   var data = {
@@ -706,11 +737,12 @@ var display_single_field = function (category_div, field) {
 
 
 module.exports = {
-    init:           init
-  , display_report: display_report
-  , display_category: display_category
-  , request_category: request_category
-  , display_single_field:  display_single_field
+    init:                   init
+    , display_report:       display_report
+    , display_category:     display_category
+    , request_field:        request_field
+    , request_category:     request_category
+    , display_single_field: display_single_field
 }
 
 

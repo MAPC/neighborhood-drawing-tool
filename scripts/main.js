@@ -125,6 +125,13 @@ $('#add-report-topic').on('click', function() {
 })
 
 
+$('#add-this-field').on('click', function() {
+  console.log('the click')
+  ReportManager.request_field()
+})
+
+
+
 // ReportManager.display_report(report.content)
 // ReportManager.display_single_field( $("#report #transportation .fields"), {title: 'Test', value: '12'} )
 
