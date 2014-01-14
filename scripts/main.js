@@ -23,32 +23,18 @@ $('select').on('change', function() {
 })
 
 
-$('select#field').on('change', function () {
-  var field = $(this).val()
-  var geo = $('select#geography option')[1],
-      geo = $(geo)
-
-  geo.attr('selected', true) // select first geography
-  
-  if ( MapManager.has_study_area() ) {
-    MapManager.set_study_area({
-      table:     $('select#table').val()
-    , field:     field
-    , geography: geo.val() })
-  }
-
-  MapManager.set_overlay({
-      table:     $('select#table').val()
-    , field:     field
-    , geography: geo.val() })
+$('select#field').on('change', function () {  
+  StateManager.update_params({
+      field: $(this).val()
+    , geography: $($('select#geography option')[1])
+  })
+  MapManager.update_map()
 })
 
 
 $('select#geography').on('change', function () {
-  var geo = $(this).find(':selected')
-  if ( MapManager.has_study_area() ) {
-    MapManager.set_study_area({ geography: geo.val() }) }
-  MapManager.set_overlay({ geography: geo.val() })  
+  StateManager.update_params({ geography: geo.val() })
+  MapManager.update_map() 
 })
 
 
