@@ -11060,12 +11060,15 @@ var request = function (args) {
 //
 //
 
-// var params = {}
+var params = {}
 //   , required = ['table', 'topic', 'field', 'geography']
 //   , has_drawing = false
 
+var get_params = function () {
+  return {table: 'something', field: 'something_else'}
+}
 
-// var update_params = function (args) {
+var update_params = function (args) {}
 //   if (!_.isArray(args)) { args = Array(args) }
 //   _.forEach(args, function(arg) {
 //     set_param(arg)
@@ -11093,8 +11096,9 @@ var request = function (args) {
 // }
 
 
-// module.exports = {
-//     update_params:      update_params
+module.exports = {
+   update_params: update_params 
+  , get_params:   get_params      }
 //   , can_get_extent:     can_get_extent
 //   , can_get_study_area: can_get_study_area
 // }
@@ -11303,22 +11307,22 @@ var S = require('../scripts/state_manager.js')
 
 describe('StateManager', function() {
 
-  describe('#can_get_extent', function () {
-    it('returns true when required parameters exist')
-    it('returns false if any parameter is missing') // beforeEach
-  })
+  // describe('#can_get_extent', function () {
+  //   it('returns true when required parameters exist')
+  //   it('returns false if any parameter is missing') // beforeEach
+  // })
 
-  describe('#can_get_study_area', function () {
-    it('returns true when ')
-    it('returns false when ')
-  })
+  // describe('#can_get_study_area', function () {
+  //   it('returns true when ')
+  //   it('returns false when ')
+  // })
 
   describe('#update_params', function () {
-    it('updates arbitrary parameters')
-
-    // var params = {table: 'something', field: 'something_else'}
-    // S.update_params( params )
-    // S.get_params.should.equal( params )
+    it('updates arbitrary parameters', function () {
+      var params = {table: 'something', field: 'something_else'}
+      S.update_params( params )
+      S.get_params().should.equal( params ) // TODO: problems w obj
+    })
   })
   
 })

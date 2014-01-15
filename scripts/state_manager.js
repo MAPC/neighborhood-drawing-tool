@@ -3,24 +3,24 @@
 //
 //
 
-// var params = {}
+_ = require('lodash')
+var params = {}
 //   , required = ['table', 'topic', 'field', 'geography']
 //   , has_drawing = false
 
+var get_params = function () {
+  return params
+}
 
-// var update_params = function (args) {
-//   if (!_.isArray(args)) { args = Array(args) }
-//   _.forEach(args, function(arg) {
-//     set_param(arg)
-//   })
-// }
+var update_params = function (args) {
+  _.forIn(args, function(value, key){
+    params[key] = value
+  })
+}
 
-
-// var set_param = function (arg) {
-//   _.forIn(arg, function(value, key) { 
-//     params[key] = value })
-// }
-
+var reset_params = function () {
+  params = {}
+}
 
 // var can_get_extent = function () {
 //   var can_it = true
@@ -36,8 +36,10 @@
 // }
 
 
-// module.exports = {
-//     update_params:      update_params
+module.exports = {
+  update_params: update_params
+  , reset_params: reset_params
+  , get_params:   get_params      }
 //   , can_get_extent:     can_get_extent
 //   , can_get_study_area: can_get_study_area
 // }
