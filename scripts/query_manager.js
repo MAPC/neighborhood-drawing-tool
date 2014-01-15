@@ -17,6 +17,10 @@ var tables = function (topic, callback) {
 }
 
 
+// fields
+// geographies
+
+
 module.exports = { get_site: get_site
                  , topics:   topics
                  , tables:   tables   }

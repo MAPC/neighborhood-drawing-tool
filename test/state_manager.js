@@ -17,7 +17,11 @@ describe('StateManager', function() {
   })
 
   describe('#update_params', function () {
-    it('updates arbitrary parameters')  
+    it('updates arbitrary parameters')
+
+    // var params = {table: 'something', field: 'something_else'}
+    // S.update_params( params )
+    // S.get_params.should.equal( params )
   })
   
 })
