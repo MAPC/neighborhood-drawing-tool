@@ -1,18 +1,19 @@
+var _ = require('lodash')
 var api_base = 'http://localhost:2474'
 
 var get_site = function() { return api_base }
 
 
-var topics   = function () {
-  request({
-    callback: function(data) { return data }
-  })
+var topics   = function (callback) {
+  request({ callback: callback })
 }
 
 
-var tables = function (topic) {
+var tables = function (topic, callback) {
   if (topic == undefined) { throw new Error('No topic defined for #tables().') }
-  return Array({title: 'Gross Rent', value: 'rent'})
+  
+  request({ topic:    topic.toLowerCase()
+          , callback: callback            })
 }
 
 
@@ -25,12 +26,19 @@ module.exports = { get_site: get_site
 // PRIVATE
 
 var request = function (args) {
-  console.log(args.callback)
+  topic = args.topic || ''
+  // console.log(api_base + '/topics/' + topic)
   jQuery.ajax({
-      url: api_base + '/topics'
+      url: api_base + '/topics/' + topic
     , type: 'GET'
     // , contentType: 'application/json'
-    , success: function (data) { args.callback(data) }
+    , success: function (data) {
+        if (args.callback) {
+          var data = data
+          if (!_.isArray(data)) { data = Array(data) }
+          args.callback(data)
+        }
+      }
     , error: function (e) { console.log('Error: ' + e) }
   })
 }
