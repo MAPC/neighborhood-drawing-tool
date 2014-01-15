@@ -1,39 +1,71 @@
 var _ = require('lodash')
-var api_base = 'http://localhost:2474'
+var api_base = 'http://localhost:2474/'
 
 var get_site = function() { return api_base }
 
 
 var topics   = function (callback) {
-  request({ callback: callback })
+  request({ resource: 'topics'
+          , callback: callback })
 }
 
 
 var tables = function (topic, callback) {
-  if (topic == undefined) { throw new Error('No topic defined for #tables().') }
+  if ( topic == undefined || topic.length == 0 || jQuery.isEmptyObject(topic) ) { 
+    throw new Error('No topic defined for #tables().') }
   
-  request({ topic:    topic.toLowerCase()
-          , callback: callback            })
+  request({ resource: 'topics'
+          , specify:   topic.toLowerCase()
+          , callback:  callback            })
+}
+
+var fields = function (table, callback) {
+  if ( table == undefined || table.length == 0 || jQuery.isEmptyObject(table) ) { 
+    throw new Error('No table defined for #fields().') }
+  
+  request({ resource: 'tables'
+          , specify:   table.toLowerCase() + '/fields'
+          , callback:  callback            })
+}
+
+var geographies = function (table, callback) {
+  if ( table == undefined || table.length == 0 || jQuery.isEmptyObject(table) ) { 
+    throw new Error('No table defined for #geographies().') }
+  
+  request({ resource: 'tables'
+          , specify:   table.toLowerCase() + '/geographies'
+          , callback:  callback            })
 }
 
 
-// fields
 // geographies
 
 
 module.exports = { get_site: get_site
                  , topics:   topics
-                 , tables:   tables   }
+                 , tables:   tables   
+                 , fields:   fields   
+                 , geographies: geographies   }
 
 
 
 // PRIVATE
 
 var request = function (args) {
-  topic = args.topic || ''
-  // console.log(api_base + '/topics/' + topic)
+  var resource, specify
+  if (args.resource) {
+    resource = args.resource + '/' }
+  else { 
+    resource = '' }
+
+  if (args.specify) {
+    specify = args.specify + '/' }
+  else { 
+    specify = '' }
+
+  // console.log(api_base + resource + specify)
   jQuery.ajax({
-      url: api_base + '/topics/' + topic
+      url: api_base + resource + specify
     , type: 'GET'
     // , contentType: 'application/json'
     , success: function (data) {

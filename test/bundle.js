@@ -10962,41 +10962,73 @@ var global=typeof self !== "undefined" ? self : typeof window !== "undefined" ? 
 
 },{}],32:[function(require,module,exports){
 var _ = require('lodash')
-var api_base = 'http://localhost:2474'
+var api_base = 'http://localhost:2474/'
 
 var get_site = function() { return api_base }
 
 
 var topics   = function (callback) {
-  request({ callback: callback })
+  request({ resource: 'topics'
+          , callback: callback })
 }
 
 
 var tables = function (topic, callback) {
-  if (topic == undefined) { throw new Error('No topic defined for #tables().') }
+  if ( topic == undefined || topic.length == 0 || jQuery.isEmptyObject(topic) ) { 
+    throw new Error('No topic defined for #tables().') }
   
-  request({ topic:    topic.toLowerCase()
-          , callback: callback            })
+  request({ resource: 'topics'
+          , specify:   topic.toLowerCase()
+          , callback:  callback            })
+}
+
+var fields = function (table, callback) {
+  if ( table == undefined || table.length == 0 || jQuery.isEmptyObject(table) ) { 
+    throw new Error('No table defined for #fields().') }
+  
+  request({ resource: 'tables'
+          , specify:   table.toLowerCase() + '/fields'
+          , callback:  callback            })
+}
+
+var geographies = function (table, callback) {
+  if ( table == undefined || table.length == 0 || jQuery.isEmptyObject(table) ) { 
+    throw new Error('No table defined for #geographies().') }
+  
+  request({ resource: 'tables'
+          , specify:   table.toLowerCase() + '/geographies'
+          , callback:  callback            })
 }
 
 
-// fields
 // geographies
 
 
 module.exports = { get_site: get_site
                  , topics:   topics
-                 , tables:   tables   }
+                 , tables:   tables   
+                 , fields:   fields   
+                 , geographies: geographies   }
 
 
 
 // PRIVATE
 
 var request = function (args) {
-  topic = args.topic || ''
-  // console.log(api_base + '/topics/' + topic)
+  var resource, specify
+  if (args.resource) {
+    resource = args.resource + '/' }
+  else { 
+    resource = '' }
+
+  if (args.specify) {
+    specify = args.specify + '/' }
+  else { 
+    specify = '' }
+
+  // console.log(api_base + resource + specify)
   jQuery.ajax({
-      url: api_base + '/topics/' + topic
+      url: api_base + resource + specify
     , type: 'GET'
     // , contentType: 'application/json'
     , success: function (data) {
@@ -11078,7 +11110,7 @@ var Q = require('../scripts/query_manager')
 
 describe('QueryManager', function () {
   it('should return the site base URL', function () {
-    Q.get_site().should.equal('http://localhost:2474')
+    Q.get_site().should.equal('http://localhost:2474/')
   })
 
   describe('#topics()', function () {
@@ -11096,12 +11128,12 @@ describe('QueryManager', function () {
       })
     })
 
-    it('should return an array of objects', function (done) {
-      Q.topics( function (data) {
-        (typeof data[0]).should.equal('object')  
-        done()
-      })
-    })
+    // it('should return an array of objects', function (done) {
+    //   Q.topics( function (data) {
+    //     (typeof data[0]).should.equal('object')  
+    //     done()
+    //   })
+    // })
 
     it('objects should have "data", "href", "title", and "value"', function (done) {
       Q.topics( function (data) {
@@ -11133,6 +11165,13 @@ describe('QueryManager', function () {
     it('should throw an error when given no argument', function () {
       // TODO: Verify this worked
       chai.expect( function () { Q.tables() } ).to.throw('No topic defined for #tables().')
+    })
+
+    it('should throw an error when given a blank argument', function () {
+      // TODO: Verify this worked
+      chai.expect( function () { Q.tables('') } ).to.throw('No topic defined for #tables().')
+      chai.expect( function () { Q.tables([]) } ).to.throw('No topic defined for #tables().')
+      chai.expect( function () { Q.tables({}) } ).to.throw('No topic defined for #tables().')
     })
 
     // TODO: beforeEach create a tables variable from
@@ -11209,13 +11248,52 @@ describe('QueryManager', function () {
 
   describe('#fields', function () {
 
-    it('should throw an error if given no argument')
-    it('\'s objects should have "alias" and "field_name"')
+    it('should throw an error when given no argument', function () {
+      // TODO: Verify this worked
+      chai.expect( function () { Q.fields() } ).to.throw('No table defined for #fields().')
+    })
 
+    it('should throw an error when given a blank argument', function () {
+      // TODO: Verify this worked
+      chai.expect( function () { Q.fields('') } ).to.throw('No table defined for #fields().')
+      chai.expect( function () { Q.fields([]) } ).to.throw('No table defined for #fields().')
+      chai.expect( function () { Q.fields({}) } ).to.throw('No table defined for #fields().')
+    })
+
+    it('\'s objects should have "alias" and "field_name"', function (done) {
+      Q.fields('rent', function (data) {
+        data[0].field_name.should.not.be.undefined
+        data[0].alias.should.not.be.undefined
+        done()
+      })
+    })
+  })
+
+  describe('#geographies', function () {
+
+    it('should throw an error when given no argument', function () {
+      // TODO: Verify this worked
+      chai.expect( function () { Q.geographies() } ).to.throw('No table defined for #geographies().')
+    })
+
+    it('should throw an error when given a blank argument', function () {
+      // TODO: Verify this worked
+      chai.expect( function () { Q.geographies('') } ).to.throw('No table defined for #geographies().')
+      chai.expect( function () { Q.geographies([]) } ).to.throw('No table defined for #geographies().')
+      chai.expect( function () { Q.geographies({}) } ).to.throw('No table defined for #geographies().')
+    })
+
+    it('\'s objects should have "title", "name", "suffix", and "key"', function (done) {
+      Q.geographies('rent', function (data) {
+        data[0].title.should.not.be.undefined
+        data[0].name.should.not.be.undefined
+        data[0].suffix.should.not.be.undefined
+        data[0].key.should.not.be.undefined
+        done()
+      })
+    })
   })
 })
-
-
 },{"../scripts/query_manager":32,"chai":1,"lodash":31}],36:[function(require,module,exports){
 var _    = require('lodash')
   , chai = require("chai")
