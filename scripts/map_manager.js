@@ -1,3 +1,40 @@
+//
+// module MapManager
+//
+//
+
+var StateManager = require('./state_manager')
+  , QueryManager = require('./query_manager')
+
+
+var update_map = function () {
+  if ( StateManager.can_get_extent() ) {
+    update_extent()
+
+    if ( StateManager.can_get_study_area() ) {
+      update_study_area() }
+  }
+}
+
+
+var update_extent = function () {
+  layer = QueryManager.geo_query( StateManager.something, map.getBounds() )
+  replace_layer( extent_layer, { using: layer } )
+}
+
+
+var update_study_area = function () {
+  layer = QueryManager.geo_query( StateManager.something, study_area.toGeoJSON() )
+  replace_layer( study_area_layer, { using: layer } )
+  update_drawing()
+}
+
+
+var update_drawing = function (poly_bounds) {
+  replace_layer( drawing_layer, { using: poly_bounds } )
+}
+
+
 /*
 
 MapManager
