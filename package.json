@@ -1,0 +1,11 @@
+{
+  "name": "neighborhood-drawing-tool",
+  "description": "Draw your neighborhood and get a data report.",
+  "version": "0.0.2",
+  "devDependencies": {
+    "mocha":  "*",
+    "chai":   "*",
+    "jsdom":  "*",
+    "jquery": "*"
+  }
+}

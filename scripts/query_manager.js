@@ -1,11 +1,12 @@
 var api_base = 'http://localhost:2474'
 
-
 var get_site = function() { return api_base }
 
 
 var topics   = function () {
-  return request()
+  request({
+    callback: function(data) { return data }
+  })
 }
 
 
@@ -16,30 +17,24 @@ var tables = function (topic) {
 
 
 module.exports = { get_site: get_site
-                 , topics: topics
-                 , tables: tables }
+                 , topics:   topics
+                 , tables:   tables   }
 
 
 
 // PRIVATE
 
 var request = function (args) {
-  return [ { title: 'Transportation', value: 'transportation' }
-         , { title: 'Economy', value: 'economy' } ]
+  console.log(args.callback)
+  jQuery.ajax({
+      url: api_base + '/topics'
+    , type: 'GET'
+    // , contentType: 'application/json'
+    , success: function (data) { args.callback(data) }
+    , error: function (e) { console.log('Error: ' + e) }
+  })
 }
 
-
-
-// var meta = function () {
-//   // console.log('QueryManager#meta with args: ')
-//   // console.log(arguments)
-//   var args = Array.prototype.slice.call(arguments);
-//   var callback = args.pop([args.length-1])
-//   query_path = '/' + args.join("/")
-//   request({ 
-//     path: query_path,
-//     callback: callback })
-// }
 
 // var request = function(args) {
 //   var callback = args['callback']
@@ -50,20 +45,4 @@ var request = function (args) {
 //     , opts = args['query_args'] || ''
 //     , type = args['method']     || 'GET'
 //     , data = args['data']       || null
-
 //   var url = base + path + opts
-//   // console.log('url:' + url)
-
-//   $.ajax({
-//     url: url,
-//     type: type,
-//     success: function (data) {
-//       // console.log( 'SUCCESS: ' )
-//       // console.log( data )
-//       if (callback) callback(data)
-//       },
-//     error: function (e) {
-//       console.log( 'ERROR: ' )
-//       console.log( e ) }
-//   })
-// }

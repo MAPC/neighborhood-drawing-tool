@@ -1,5 +1,6 @@
 var _    = require('lodash')
   , chai = require("chai")
+
 chai.should()
 
 var Q = require('../scripts/query_manager')
@@ -15,7 +16,7 @@ describe('QueryManager', function () {
       type.should.equal( '[object Array]' )
     })
 
-    it('should return a non-empty array', function () {
+    it('should return a non-empty object', function () {
       Q.topics().length.should.be.above(0)
     })
 

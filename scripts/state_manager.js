@@ -37,7 +37,7 @@ var can_get_study_area = function () {
 
 
 module.exports = {
-  update_params:      update_params
-  can_get_extent:     can_get_extent
-  can_get_study_area: can_get_study_area
+    update_params:      update_params
+  , can_get_extent:     can_get_extent
+  , can_get_study_area: can_get_study_area
 }
