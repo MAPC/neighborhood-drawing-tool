@@ -59,10 +59,10 @@ describe('QueryManager', function () {
 
   describe('#tables()', function (){
     
-    // it('should throw an error when given no argument', function () {
-    //   // TODO: Verify this worked
-    //   chai.expect( function () { Q.tables() } ).to.throw('No topic defined for #tables().')
-    // })
+    it('should throw an error when given no argument', function () {
+      // TODO: Verify this worked
+      chai.expect( function () { Q.tables() } ).to.throw('No topic defined for #tables().')
+    })
 
     // TODO: beforeEach create a tables variable from
     // the same call to tables() with the same param

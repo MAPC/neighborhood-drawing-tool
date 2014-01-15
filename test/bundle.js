@@ -10980,6 +10980,10 @@ var tables = function (topic, callback) {
 }
 
 
+// fields
+// geographies
+
+
 module.exports = { get_site: get_site
                  , topics:   topics
                  , tables:   tables   }
@@ -11024,44 +11028,44 @@ var request = function (args) {
 //
 //
 
-var params = {}
-  , required = ['table', 'topic', 'field', 'geography']
-  , has_drawing = false
+// var params = {}
+//   , required = ['table', 'topic', 'field', 'geography']
+//   , has_drawing = false
 
 
-var update_params = function (args) {
-  if (!_.isArray(args)) { args = Array(args) }
-  _.forEach(args, function(arg) {
-    set_param(arg)
-  })
-}
+// var update_params = function (args) {
+//   if (!_.isArray(args)) { args = Array(args) }
+//   _.forEach(args, function(arg) {
+//     set_param(arg)
+//   })
+// }
 
 
-var set_param = function (arg) {
-  _.forIn(arg, function(value, key) { 
-    params[key] = value })
-}
+// var set_param = function (arg) {
+//   _.forIn(arg, function(value, key) { 
+//     params[key] = value })
+// }
 
 
-var can_get_extent = function () {
-  var can_it = true
-  _.forEach(required, function(requirement) {
-    // if params does not meet a requirement
-    if(!params[requirement]) { can_it = false } })
-  return can_it
-}
+// var can_get_extent = function () {
+//   var can_it = true
+//   _.forEach(required, function(requirement) {
+//     // if params does not meet a requirement
+//     if(!params[requirement]) { can_it = false } })
+//   return can_it
+// }
 
 
-var can_get_study_area = function () {
-  return has_drawing && can_get_extent()
-}
+// var can_get_study_area = function () {
+//   return has_drawing && can_get_extent()
+// }
 
 
-module.exports = {
-    update_params:      update_params
-  , can_get_extent:     can_get_extent
-  , can_get_study_area: can_get_study_area
-}
+// module.exports = {
+//     update_params:      update_params
+//   , can_get_extent:     can_get_extent
+//   , can_get_study_area: can_get_study_area
+// }
 },{}],34:[function(require,module,exports){
 
 },{}],35:[function(require,module,exports){
@@ -11126,10 +11130,10 @@ describe('QueryManager', function () {
 
   describe('#tables()', function (){
     
-    // it('should throw an error when given no argument', function () {
-    //   // TODO: Verify this worked
-    //   chai.expect( function () { Q.tables() } ).to.throw('No topic defined for #tables().')
-    // })
+    it('should throw an error when given no argument', function () {
+      // TODO: Verify this worked
+      chai.expect( function () { Q.tables() } ).to.throw('No topic defined for #tables().')
+    })
 
     // TODO: beforeEach create a tables variable from
     // the same call to tables() with the same param
@@ -11232,7 +11236,11 @@ describe('StateManager', function() {
   })
 
   describe('#update_params', function () {
-    it('updates arbitrary parameters')  
+    it('updates arbitrary parameters')
+
+    // var params = {table: 'something', field: 'something_else'}
+    // S.update_params( params )
+    // S.get_params.should.equal( params )
   })
   
 })
