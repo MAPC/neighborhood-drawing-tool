@@ -25,6 +25,8 @@ describe('StateManager', function() {
     })
   })
 
+  // describe('#map_added')
+
   describe('#can_get_extent', function () {
 
     beforeEach(function() {
@@ -43,7 +45,7 @@ describe('StateManager', function() {
     })
 
     it('returns false if any parameter is missing', function () {
-      reqs = S.get_requirements()
+      var reqs = S.get_requirements()
       _.forEach(reqs, function (req) {
         var set = _.clone(reqs)
         _.pull(set, req)
@@ -61,6 +63,9 @@ describe('StateManager', function() {
       }).to.throw('StateManager has no requirements.')
     })
   })
+
+  // describe('#drawing_added')
+  // describe('#can_get_study_area')
 
   describe('#update_params', function () {
 

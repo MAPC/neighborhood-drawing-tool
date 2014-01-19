@@ -4220,7 +4220,7 @@ function objectEqual(a, b, m) {
   return true;
 }
 
-},{"buffer":41,"type-detect":29}],29:[function(require,module,exports){
+},{"buffer":42,"type-detect":29}],29:[function(require,module,exports){
 module.exports = require('./lib/type');
 
 },{"./lib/type":30}],30:[function(require,module,exports){
@@ -11062,30 +11062,62 @@ var request = function (args) {
 
 _ = require('lodash')
 var params = {}
-//   , required = ['table', 'topic', 'field', 'geography']
+  , requirements = ['table', 'topic', 'field', 'geography', 'map']
 //   , has_drawing = false
+
+
+var get_requirements = function () {
+  return requirements
+}
+
 
 var get_params = function () {
   return params
 }
 
+
 var update_params = function (args) {
+  var args = args
+  if ( _.isArray(args) ) { args = merge_args(args) }
   _.forIn(args, function(value, key){
     params[key] = value
   })
 }
 
+
+var merge_args = function (args) {
+  var hash = {}
+  _.forEach(args, function (arg) {
+    if ( _.isObject(arg) ) { _.merge(hash, arg) }
+  })
+  return hash
+}
+
+
 var reset_params = function () {
   params = {}
 }
 
-// var can_get_extent = function () {
-//   var can_it = true
-//   _.forEach(required, function(requirement) {
-//     // if params does not meet a requirement
-//     if(!params[requirement]) { can_it = false } })
-//   return can_it
-// }
+
+var clear_requirements = function () {
+  requirements = undefined
+}
+
+
+var can_get_extent = function () {
+  throw_if_no_requirements()
+  var can_it = false
+  var keys = _.keys(params)
+  if( _.isEqual( keys.sort(), requirements.sort() )) { can_it = true }
+  return can_it
+}
+
+
+var throw_if_no_requirements = function () {
+  if (_.isUndefined(requirements) || requirements.length === 0) {
+    throw new Error('StateManager has no requirements.')
+  }
+}
 
 
 // var can_get_study_area = function () {
@@ -11094,15 +11126,28 @@ var reset_params = function () {
 
 
 module.exports = {
-  update_params: update_params
-  , reset_params: reset_params
-  , get_params:   get_params      }
-//   , can_get_extent:     can_get_extent
+  update_params:        update_params
+  , reset_params:       reset_params
+  , get_params:         get_params      
+  , get_requirements:   get_requirements
+  , clear_requirements: clear_requirements
+  , can_get_extent:     can_get_extent     }
 //   , can_get_study_area: can_get_study_area
 // }
 },{"lodash":31}],34:[function(require,module,exports){
 
 },{}],35:[function(require,module,exports){
+var _    = require('lodash')
+  , chai = require("chai")
+chai.should()
+
+// var M = require('../scripts/map_manager.js')
+
+describe('Map', function () {
+
+  it('should know its bounds')
+})
+},{"chai":1,"lodash":31}],36:[function(require,module,exports){
 var _    = require('lodash')
   , chai = require("chai")
 
@@ -11296,7 +11341,7 @@ describe('QueryManager', function () {
     })
   })
 })
-},{"../scripts/query_manager":32,"chai":1,"lodash":31}],36:[function(require,module,exports){
+},{"../scripts/query_manager":32,"chai":1,"lodash":31}],37:[function(require,module,exports){
 var _    = require('lodash')
   , chai = require("chai")
 chai.should()
@@ -11305,15 +11350,66 @@ var S = require('../scripts/state_manager.js')
 
 describe('StateManager', function() {
 
-  // describe('#can_get_extent', function () {
-  //   it('returns true when required parameters exist')
-  //   it('returns false if any parameter is missing') // beforeEach
-  // })
+  describe ('required', function () {
 
-  // describe('#can_get_study_area', function () {
-  //   it('returns true when ')
-  //   it('returns false when ')
-  // })
+    it('returns required parameters', function () {
+      S.get_requirements().should.not.be.undefined
+    })
+
+    it('has required parameters', function () {
+      reqs = ['table', 'topic', 'field', 'geography', 'map']
+      _.forEach(reqs, function (req) {
+        S.get_requirements().indexOf(req).should.not.equal(-1)
+      })
+    })
+
+    it('cannot change requirements', function() {
+      S.required = []
+      S.get_requirements().length.should.be.above(0)
+    })
+  })
+
+  // describe('#map_added')
+
+  describe('#can_get_extent', function () {
+
+    beforeEach(function() {
+      S.reset_params()
+    })
+
+    it('returns true when required parameters exist', function () {
+      S.update_params({
+          table:     'mock-table'
+        , topic:     'mock-topic'
+        , field:     'mock-field'
+        , map:       'mock-map'
+        , geography: 'mock-geography'
+      })
+      S.can_get_extent().should.be.true
+    })
+
+    it('returns false if any parameter is missing', function () {
+      var reqs = S.get_requirements()
+      _.forEach(reqs, function (req) {
+        var set = _.clone(reqs)
+        _.pull(set, req)
+        _.forEach(set, function (el) {
+          S.update_params({el: true})
+        })
+        S.can_get_extent().should.be.false
+      })
+    })
+
+    it('throws if there are no requirements', function () {
+      S.clear_requirements()
+      chai.expect( function () { 
+        S.can_get_extent() 
+      }).to.throw('StateManager has no requirements.')
+    })
+  })
+
+  // describe('#drawing_added')
+  // describe('#can_get_study_area')
 
   describe('#update_params', function () {
 
@@ -11330,16 +11426,20 @@ describe('StateManager', function() {
     it('updates slightly different parameters', function () {
       var params = {geography: 'something', topic: 'something_else'}
       S.update_params( params )
-      console.log(S.get_params())
       _.isEqual(S.get_params(), params).should.be.true
     })
 
-    it('only accepts objects')
-    
+    it('accepts an array of objects', function () {
+      var params = [{geography: 'which'}, {topic: 'another'}]
+        , expected = _.merge(params[0], params[1])
+      S.update_params( params )
+      _.isEqual(S.get_params(), expected).should.be.true
+    })
   })
+
   
 })
-},{"../scripts/state_manager.js":33,"chai":1,"lodash":31}],37:[function(require,module,exports){
+},{"../scripts/state_manager.js":33,"chai":1,"lodash":31}],38:[function(require,module,exports){
 
 
 //
@@ -11557,7 +11657,7 @@ if (typeof Object.getOwnPropertyDescriptor === 'function') {
   exports.getOwnPropertyDescriptor = valueObject;
 }
 
-},{}],38:[function(require,module,exports){
+},{}],39:[function(require,module,exports){
 // Copyright Joyent, Inc. and other Node contributors.
 //
 // Permission is hereby granted, free of charge, to any person obtaining a
@@ -11874,7 +11974,7 @@ assert.doesNotThrow = function(block, /*optional*/message) {
 };
 
 assert.ifError = function(err) { if (err) {throw err;}};
-},{"_shims":37,"util":39}],39:[function(require,module,exports){
+},{"_shims":38,"util":40}],40:[function(require,module,exports){
 // Copyright Joyent, Inc. and other Node contributors.
 //
 // Permission is hereby granted, free of charge, to any person obtaining a
@@ -12419,7 +12519,7 @@ function hasOwnProperty(obj, prop) {
   return Object.prototype.hasOwnProperty.call(obj, prop);
 }
 
-},{"_shims":37}],40:[function(require,module,exports){
+},{"_shims":38}],41:[function(require,module,exports){
 exports.readIEEE754 = function(buffer, offset, isBE, mLen, nBytes) {
   var e, m,
       eLen = nBytes * 8 - mLen - 1,
@@ -12505,7 +12605,7 @@ exports.writeIEEE754 = function(buffer, value, offset, isBE, mLen, nBytes) {
   buffer[offset + i - d] |= s * 128;
 };
 
-},{}],41:[function(require,module,exports){
+},{}],42:[function(require,module,exports){
 var assert;
 exports.Buffer = Buffer;
 exports.SlowBuffer = Buffer;
@@ -13631,7 +13731,7 @@ Buffer.prototype.writeDoubleBE = function(value, offset, noAssert) {
   writeDouble(this, value, offset, true, noAssert);
 };
 
-},{"./buffer_ieee754":40,"assert":38,"base64-js":42}],42:[function(require,module,exports){
+},{"./buffer_ieee754":41,"assert":39,"base64-js":43}],43:[function(require,module,exports){
 (function (exports) {
 	'use strict';
 
@@ -13717,5 +13817,5 @@ Buffer.prototype.writeDoubleBE = function(value, offset, noAssert) {
 	module.exports.fromByteArray = uint8ToBase64;
 }());
 
-},{}]},{},[34,35,36])
+},{}]},{},[34,35,36,37])
 ;

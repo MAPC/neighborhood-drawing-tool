@@ -35,6 +35,11 @@ var update_drawing = function (poly_bounds) {
 }
 
 
+// map.on('moveend')
+// map.on('zoomend')
+// map.on('draw:created')
+// map.on('draw:edited')
+
 /*
 
 MapManager
@@ -44,6 +49,7 @@ MapManager
 */
 
 var LegendManager = require('./legend_manager')
+  , draw_options = require('./draw_control_options')
 
 var table, field, geography, study_area
   , mapc_url     = 'http://tiles.mapc.org/basemap/{z}/{x}/{y}.png'
@@ -60,22 +66,7 @@ var table, field, geography, study_area
 
 
 var layer_control = L.control.layers(base_layers, over_layers)
-  , draw_control = new L.Control.Draw({
-      draw: {
-        position: 'topleft',
-        polygon: {
-          title: 'Draw your neighborhood!',
-          allowIntersection: false,
-          drawError: {
-            color: '#b00b00',
-            timeout: 1000 },
-          shapeOptions: {
-            color: '#2255BB' },
-          showArea: true },
-        polyline: false,
-        marker: false },
-      edit: {
-        featureGroup: drawing_layer } });
+  , draw_control = new L.Control.Draw( draw_options )
 
 
 var map = L.map('map', {
