@@ -11060,27 +11060,24 @@ var request = function (args) {
 //
 //
 
+_ = require('lodash')
 var params = {}
 //   , required = ['table', 'topic', 'field', 'geography']
 //   , has_drawing = false
 
 var get_params = function () {
-  return {table: 'something', field: 'something_else'}
+  return params
 }
 
-var update_params = function (args) {}
-//   if (!_.isArray(args)) { args = Array(args) }
-//   _.forEach(args, function(arg) {
-//     set_param(arg)
-//   })
-// }
+var update_params = function (args) {
+  _.forIn(args, function(value, key){
+    params[key] = value
+  })
+}
 
-
-// var set_param = function (arg) {
-//   _.forIn(arg, function(value, key) { 
-//     params[key] = value })
-// }
-
+var reset_params = function () {
+  params = {}
+}
 
 // var can_get_extent = function () {
 //   var can_it = true
@@ -11097,12 +11094,13 @@ var update_params = function (args) {}
 
 
 module.exports = {
-   update_params: update_params 
+  update_params: update_params
+  , reset_params: reset_params
   , get_params:   get_params      }
 //   , can_get_extent:     can_get_extent
 //   , can_get_study_area: can_get_study_area
 // }
-},{}],34:[function(require,module,exports){
+},{"lodash":31}],34:[function(require,module,exports){
 
 },{}],35:[function(require,module,exports){
 var _    = require('lodash')
@@ -11318,11 +11316,26 @@ describe('StateManager', function() {
   // })
 
   describe('#update_params', function () {
+
+    beforeEach(function() {
+      S.reset_params()
+    })
+
     it('updates arbitrary parameters', function () {
       var params = {table: 'something', field: 'something_else'}
       S.update_params( params )
-      S.get_params().should.equal( params ) // TODO: problems w obj
+      _.isEqual(S.get_params(), params).should.be.true
     })
+
+    it('updates slightly different parameters', function () {
+      var params = {geography: 'something', topic: 'something_else'}
+      S.update_params( params )
+      console.log(S.get_params())
+      _.isEqual(S.get_params(), params).should.be.true
+    })
+
+    it('only accepts objects')
+    
   })
   
 })

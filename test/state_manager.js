@@ -6,15 +6,61 @@ var S = require('../scripts/state_manager.js')
 
 describe('StateManager', function() {
 
-  // describe('#can_get_extent', function () {
-  //   it('returns true when required parameters exist')
-  //   it('returns false if any parameter is missing') // beforeEach
-  // })
+  describe ('required', function () {
 
-  // describe('#can_get_study_area', function () {
-  //   it('returns true when ')
-  //   it('returns false when ')
-  // })
+    it('returns required parameters', function () {
+      S.get_requirements().should.not.be.undefined
+    })
+
+    it('has required parameters', function () {
+      reqs = ['table', 'topic', 'field', 'geography', 'map']
+      _.forEach(reqs, function (req) {
+        S.get_requirements().indexOf(req).should.not.equal(-1)
+      })
+    })
+
+    it('cannot change requirements', function() {
+      S.required = []
+      S.get_requirements().length.should.be.above(0)
+    })
+  })
+
+  describe('#can_get_extent', function () {
+
+    beforeEach(function() {
+      S.reset_params()
+    })
+
+    it('returns true when required parameters exist', function () {
+      S.update_params({
+          table:     'mock-table'
+        , topic:     'mock-topic'
+        , field:     'mock-field'
+        , map:       'mock-map'
+        , geography: 'mock-geography'
+      })
+      S.can_get_extent().should.be.true
+    })
+
+    it('returns false if any parameter is missing', function () {
+      reqs = S.get_requirements()
+      _.forEach(reqs, function (req) {
+        var set = _.clone(reqs)
+        _.pull(set, req)
+        _.forEach(set, function (el) {
+          S.update_params({el: true})
+        })
+        S.can_get_extent().should.be.false
+      })
+    })
+
+    it('throws if there are no requirements', function () {
+      S.clear_requirements()
+      chai.expect( function () { 
+        S.can_get_extent() 
+      }).to.throw('StateManager has no requirements.')
+    })
+  })
 
   describe('#update_params', function () {
 
@@ -31,12 +77,16 @@ describe('StateManager', function() {
     it('updates slightly different parameters', function () {
       var params = {geography: 'something', topic: 'something_else'}
       S.update_params( params )
-      console.log(S.get_params())
       _.isEqual(S.get_params(), params).should.be.true
     })
 
-    it('only accepts objects')
-    
+    it('accepts an array of objects', function () {
+      var params = [{geography: 'which'}, {topic: 'another'}]
+        , expected = _.merge(params[0], params[1])
+      S.update_params( params )
+      _.isEqual(S.get_params(), expected).should.be.true
+    })
   })
+
   
 })
