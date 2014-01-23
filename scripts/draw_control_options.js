@@ -18,7 +18,7 @@ var draw_control_options =
     },
     
     rectangle: {
-      title 'Draw a rectangular study area.',
+      title: 'Draw a rectangular study area.',
       shapeOptions: {
         color: draw_color
       }
