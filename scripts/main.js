@@ -11,8 +11,6 @@ var ZoomManager   = require('./zoom_manager')
 
 
 QueryManager.topics( function (topics) {
-  console.log("#topics")
-  console.log(topics)
   $('select#topic').html(
     SelectManager.options_html(topics) )
   $('select#report-topic').html(

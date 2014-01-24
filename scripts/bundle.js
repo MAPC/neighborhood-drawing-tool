@@ -6835,8 +6835,6 @@ var ZoomManager   = require('./zoom_manager')
 
 
 QueryManager.topics( function (topics) {
-  console.log("#topics")
-  console.log(topics)
   $('select#topic').html(
     SelectManager.options_html(topics) )
   $('select#report-topic').html(
@@ -7440,7 +7438,8 @@ var geojson_to_keys = function(geojson) {
     return feature.properties.key })
 }
 },{"./config.js":2,"./query_manager":8}],10:[function(require,module,exports){
-var DataManager = require('./data_manager')
+var DataManager  = require('./data_manager')
+  , QueryManager = require('./query_manager')
 
 
 var options_html = function (collection) {
@@ -7453,7 +7452,6 @@ var options_html = function (collection) {
 var option_tags = function (collection) {
   var option_tags = [] 
   _.forEach(collection, function (item) {
-    console.log(item.data.title, item.data.value)
     option_tags.push( option_tag(item.data.title, item.data.value) ) 
   })
   return option_tags
@@ -7533,20 +7531,17 @@ var populate_next = function (obj) {
 
   switch (id) {
     case 'topic':
-      opts = {text: 'title', value: 'name'}
-      DataManager.get_tables(value, function (pairs) {
-        next.html( generate_options(pairs, opts) )
+      QueryManager.tables(value, function (collection) {
+        next.html( options_html(collection) )
       })
       break;
     case 'table':
-      opts = {text: 'alias', value: 'field_name'}
-      DataManager.get_fields({ table: value, callback: function (pairs) {
-        next.html( generate_options(pairs, opts) )
-      }})
-      opts_geo = {text: 'title', value: 'name'}
-      DataManager.get_geographies({table: value, callback: function (pairs) {
-        $('select#geography').html( generate_options(pairs, opts_geo) )
-      }})
+      QueryManager.fields(value, function (collection) {
+        next.html( options_html(collection) )
+      })
+      QueryManager.geographies(value,  function (collection) {
+        $('select#geography').html( options_html(collection) )
+      })
       break;
   }
 }
@@ -7557,7 +7552,7 @@ module.exports = {
   , generate_options:  generate_options
   , populate_next:     populate_next
 }
-},{"./data_manager":3}],11:[function(require,module,exports){
+},{"./data_manager":3,"./query_manager":8}],11:[function(require,module,exports){
 
 var zoom_config = {
       8:  'municipality'
