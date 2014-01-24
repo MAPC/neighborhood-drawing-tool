@@ -10974,7 +10974,7 @@ var topics   = function (callback) {
 
 
 var tables = function (topic, callback) {
-  if ( topic == undefined || topic.length == 0 || jQuery.isEmptyObject(topic) ) { 
+  if ( undefined_or_empty( topic ) ) { 
     throw new Error('No topic defined for #tables().') }
   
   request({ resource: 'topics'
@@ -10983,7 +10983,7 @@ var tables = function (topic, callback) {
 }
 
 var fields = function (table, callback) {
-  if ( table == undefined || table.length == 0 || jQuery.isEmptyObject(table) ) { 
+  if ( undefined_or_empty( table ) ) { 
     throw new Error('No table defined for #fields().') }
   
   request({ resource: 'tables'
@@ -10992,12 +10992,19 @@ var fields = function (table, callback) {
 }
 
 var geographies = function (table, callback) {
-  if ( table == undefined || table.length == 0 || jQuery.isEmptyObject(table) ) { 
+  if ( undefined_or_empty( table ) ) { 
     throw new Error('No table defined for #geographies().') }
   
   request({ resource: 'tables'
           , specify:   table.toLowerCase() + '/geographies'
           , callback:  callback            })
+}
+
+var undefined_or_empty = function (thing) {
+  if (thing == undefined || thing.length == 0 || jQuery.isEmptyObject(thing)) {
+    return true  }
+  else {
+    return false }
 }
 
 
@@ -11334,19 +11341,19 @@ describe('QueryManager', function () {
 var _    = require('lodash')
   , chai = require('chai')
   , Q    = require('../scripts/query_manager.js')
+  , S    = require('../scripts/state_manager.js')
 chai.should()
 
 var SelectBox = function () {
-  this.element   = ''
-  this.path      = ''
-  this.listen_to = ''
-  // var __construct = function (that) { }
+  this.element    = ''
+  this.path       = ''
+  this.listen_to  = ''
+  
+  var __construct = function (that) {
+  }
 }
 
 var box
-
-
-box = new SelectBox({ })
 
 
 describe('SelectBox', function() {
@@ -11369,19 +11376,18 @@ describe('SelectBox', function() {
       (box.element).should.not.be.undefined
     })
 
-    // it('should respond to id')
-    // it('should respond to function_name')
-
     it('should respond to listen_to', function () {
       (box.listen_to).should.not.be.undefined
     })
 
-    it('should append an element to the DOM')
+    it('should respond to id')
+    it('should respond to function_name')
+    it('should append an element to the DOM when constructed')
 
 
   })
 })
-},{"../scripts/query_manager.js":32,"chai":1,"lodash":31}],37:[function(require,module,exports){
+},{"../scripts/query_manager.js":32,"../scripts/state_manager.js":33,"chai":1,"lodash":31}],37:[function(require,module,exports){
 var _    = require('lodash')
   , chai = require("chai")
 chai.should()
@@ -13857,5 +13863,5 @@ Buffer.prototype.writeDoubleBE = function(value, offset, noAssert) {
 	module.exports.fromByteArray = uint8ToBase64;
 }());
 
-},{}]},{},[35,34,36,37])
+},{}]},{},[34,35,36,37])
 ;

@@ -11,7 +11,7 @@ var topics   = function (callback) {
 
 
 var tables = function (topic, callback) {
-  if ( topic == undefined || topic.length == 0 || jQuery.isEmptyObject(topic) ) { 
+  if ( undefined_or_empty( topic ) ) { 
     throw new Error('No topic defined for #tables().') }
   
   request({ resource: 'topics'
@@ -19,8 +19,9 @@ var tables = function (topic, callback) {
           , callback:  callback            })
 }
 
+
 var fields = function (table, callback) {
-  if ( table == undefined || table.length == 0 || jQuery.isEmptyObject(table) ) { 
+  if ( undefined_or_empty( table ) ) { 
     throw new Error('No table defined for #fields().') }
   
   request({ resource: 'tables'
@@ -28,13 +29,22 @@ var fields = function (table, callback) {
           , callback:  callback            })
 }
 
+
 var geographies = function (table, callback) {
-  if ( table == undefined || table.length == 0 || jQuery.isEmptyObject(table) ) { 
+  if ( undefined_or_empty( table ) ) { 
     throw new Error('No table defined for #geographies().') }
   
   request({ resource: 'tables'
           , specify:   table.toLowerCase() + '/geographies'
           , callback:  callback            })
+}
+
+
+var undefined_or_empty = function (thing) {
+  if (thing == undefined || thing.length == 0 || jQuery.isEmptyObject(thing)) {
+    return true  }
+  else {
+    return false }
 }
 
 
@@ -78,15 +88,3 @@ var request = function (args) {
     , error: function (e) { console.log('Error: ' + e) }
   })
 }
-
-
-// var request = function(args) {
-//   var callback = args['callback']
-//   // console.log('QueryManager#request with args: ')
-//   // console.log(args)
-//   var base = args['api_base']   || api_base
-//     , path = args['path']       || '/'
-//     , opts = args['query_args'] || ''
-//     , type = args['method']     || 'GET'
-//     , data = args['data']       || null
-//   var url = base + path + opts
