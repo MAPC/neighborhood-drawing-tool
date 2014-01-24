@@ -10,12 +10,14 @@ var ReportManager = require('./report_manager')
 var ZoomManager   = require('./zoom_manager')
 
 
-DataManager.get_topics( function (topics) {
+QueryManager.topics( function (topics) {
+  console.log("#topics")
+  console.log(topics)
   $('select#topic').html(
-    SelectManager.generate_options(topics) )
-
+    SelectManager.options_html(topics) )
   $('select#report-topic').html(
-    SelectManager.generate_options(topics) ) })
+    SelectManager.options_html(topics) )
+})
 
 
 $('select').on('change', function() {

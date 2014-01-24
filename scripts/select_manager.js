@@ -1,35 +1,28 @@
 var DataManager = require('./data_manager')
 
-// SelectManager.init = function () {
-//   var topic     = $('select#topic')
-//     , table     = $('select#table')
-//     , field     = $('select#field')
-//     , geography = $('select#geography')
-//     , selects = [topic, table, field, geography]
 
-//   _.forEach(selects, function (select) {
-//     SelectManager.populate( select,  )
-//   })
-// }
+var options_html = function (collection) {
+  var placeholder  = '<option value = "">Choose one</option>'
+  var options      = option_tags(collection).join("\n")
+  return placeholder + options
+}
 
-// SelectManager.update_controls = function (args) {
-//   console.log('SelectManager#update_controls with args: ' + args)
-//   SelectManager.populate({ element: args['to_update']
-//                          , using:   args['selected']
-//                          , from:    args['changed'] 
-//                         }) }
 
-// var populate_next = function()
+var option_tags = function (collection) {
+  var option_tags = [] 
+  _.forEach(collection, function (item) {
+    console.log(item.data.title, item.data.value)
+    option_tags.push( option_tag(item.data.title, item.data.value) ) 
+  })
+  return option_tags
+}
 
-// SelectManager.populate = function (args) {
-//   console.log('SelectManager#populate with args: ' + args)
-//   var element = args['element']   // table select
-//     , using   = args['using']     // topic option
-//     , changed = args['changed']   // topic select
-//   // get( 'table', 'topic', 'transportation' )
-//   var pairs = DataManager.get({ data: element.id, from: changed.id, using: using.value })
-//   var options = SelectManager.generate_options(pairs, { placeholder: 'Select' + element.id })
-//   element.html(options) }
+
+var option_tag = function (title, value) {
+  return '<option value="'+ value +'">'+ title +'</option>'
+}
+
+
 
 
 var generate_options = function (pairs, opts) {
@@ -96,12 +89,6 @@ var populate_next = function (obj) {
     , id    = obj.attr( 'id' )
     , opts  = {}
 
-  // console.log('-------------------')
-  // console.log('populate_next with param ') ; console.log( obj )
-  // console.log('value ' + value)      ; console.log('id ' + id)
-  // console.log('next ')               ; console.log(next)
-  // console.log('-------------------')
-
   switch (id) {
     case 'topic':
       opts = {text: 'title', value: 'name'}
@@ -124,6 +111,7 @@ var populate_next = function (obj) {
 
 
 module.exports = {
-    generate_options:  generate_options
-  , populate_next: populate_next
+    options_html:      options_html
+  , generate_options:  generate_options
+  , populate_next:     populate_next
 }
