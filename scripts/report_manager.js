@@ -1,5 +1,5 @@
 var report = {}
-  , categories = require('./config.js').report_sets
+  , categories = require('./report_config.js').report_sets
   , QueryManager = require('./query_manager')
 
 

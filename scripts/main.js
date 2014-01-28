@@ -2,48 +2,61 @@
 
 var Mediator      = require('./mediator').mediator
 
-var DataManager   = require('./data_manager')
 var MapManager    = require('./map_manager')
 var QueryManager  = require('./query_manager')
 var SelectManager = require('./select_manager')
+var StateManager  = require('./state_manager')
 var ReportManager = require('./report_manager')
 var ZoomManager   = require('./zoom_manager')
 
 
 QueryManager.topics( function (topics) {
-  $('select#topic').html(
-    SelectManager.options_html(topics) )
-  $('select#report-topic').html(
-    SelectManager.options_html(topics) )
+  $('select#topic').html(        SelectManager.options_html(topics) )
+  $('select#report-topic').html( SelectManager.options_html(topics) )
 })
 
 
 $('select').on('change', function() {
   SelectManager.populate_next( $(this) )
+  console.log(StateManager.get_params())
+})
+
+
+$('select#topic').on('change', function () {
+  StateManager.update_params({ topic: $(this).val() })
+})
+
+
+$('select#table').on('change', function () {
+  StateManager.update_params({ table: $(this).val() })
 })
 
 
 $('select#field').on('change', function () {  
-  StateManager.update_params({
-      field: $(this).val()
-    , geography: $($('select#geography option')[1])
-  })
+  // Get the value of the first summary level
+  // TODO: or the value of the summary level appropriate for the zoom
+  var geography = $($('select#geography option')[1]).val()
+  StateManager.update_params({ field: $(this).val(), geography: geography })
+  
+  $('select#geography').val( geography )   // Change the box to reflect
+  $("select#geography").trigger('change')  // Set as text
+
   MapManager.update_map()
 })
 
 
 $('select#geography').on('change', function () {
-  StateManager.update_params({ geography: geo.val() })
-  MapManager.update_map() 
+  StateManager.update_params({ geography: $(this).val() })
+  MapManager.update_map()
 })
-
-
 
 
 var map = MapManager.init_map()
 MapManager.establish_map(map)
+StateManager.update_params({ map: map, zoom: map._zoom })
 
 
+// TODO: these should be inside MapManager
 map.on('draw:created', function (drawing) {
   MapManager.set_study_area({ study_area: drawing.layer })  })
 
@@ -53,43 +66,28 @@ map.on('draw:edited', function (drawing) {
 
 
 map.on('moveend', function () {
-  MapManager.set_overlay({})  })
+  MapManager.update_map()  })
 
 
 map.on('zoomend', function () {
-  console.log( 'zoom: ' + map.getZoom() )
+  var summary_level = ZoomManager.zoom_to_summary_level( this._zoom )
+  // TODO: CAUTION: summary_level and geography might be the same
+  StateManager.update_params({  zoom:          this._zoom
+                              , summary_level: summary_level  })
 
-  var set_zoom_selects = function (sumlevs) {
-    console.log('summary levels: ' + sumlevs)
-    var value = ZoomManager.appropriate_sumlev(map, sumlevs)
-    console.log(value)
-    $("select#geography").val(value)
-    $("select#geography").trigger('change')
-  }
+  $("select#geography").val( summary_level ) // Set geography select
+  $("select#geography").trigger('change')    // Set as text
 
-  var table = $('select#table').val()
-  console.log('table: ' + table)
-  DataManager.get_geographies({
-    table: table,
-    callback: set_zoom_selects
-  })
+  MapManager.update_map()
 })
 
+
+// FACTOR OUT
 $('select#field, select#geography').on('change', function() {
   var selected = $(this).find(':selected')
   selected = $(selected).text()
   $(this).next('a').html( selected )
   $(this).hide()
-  console.log('selected.length')
-  console.log(selected.length)
-  if(selected.length > 45){
-    console.log('======== longer')
-    console.log($('#title-bar a'))
-    $('#title-bar a').css('font-size-adjust', '0.3')
-  } else {
-    console.log('======== shorter')
-    $('#title-bar a').css('font-size-adjust', '0.0')
-  }
   if($(this).attr('id') !== 'geography') $('select#geography').trigger('change')
 })
 
@@ -115,11 +113,6 @@ $('#add-this-field').on('click', function() {
   console.log('the click')
   ReportManager.request_field()
 })
-
-
-
-// ReportManager.display_report(report.content)
-// ReportManager.display_single_field( $("#report #transportation .fields"), {title: 'Test', value: '12'} )
 
 
 

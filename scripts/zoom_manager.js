@@ -1,17 +1,24 @@
+var StateManager = require('./state_manager.js')
 
 var zoom_config = {
       8:  'municipality'
     , 12: ['census_tract', 'school_district']
-    , 15: 'census_blockgroup' }
+    , 15: 'census_blockgroup'
+}
 
+
+var zoom_to_summary_level = function (zoom) {
+  var summary_levels = StateManager.get_params().summary_levels
+  console.log(summary_levels[0].data.value)
+  return summary_levels[0].data.value
+}
 
 var arrayify = function (hash) {
   console.log('ZoomManager#arrayify')
   var max   = _.max( _.map(_.keys(hash), function (e) { return _.parseInt(e) } ))
     , array = Array(max) // TODO: or, map.maxZoom()
 
-  _.each(hash, function(value, key) {
-    array[key] = value })
+  _.each(hash, function(value, key) { array[key] = value })
   console.log(array)
   return array
 }
@@ -50,5 +57,5 @@ var appropriate_sumlev = function (map, sumlevs) {
 }
 
 module.exports = {
-  appropriate_sumlev: appropriate_sumlev
+  zoom_to_summary_level: zoom_to_summary_level
 }

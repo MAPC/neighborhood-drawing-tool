@@ -6592,128 +6592,6 @@ var global=typeof self !== "undefined" ? self : typeof window !== "undefined" ? 
 }.call(this));
 
 },{}],2:[function(require,module,exports){
-report_sets = {
-  transportation: { category: 'transportation',
-    data: [
-    {
-      table: 'means_transportation_to_work_by_residence', 
-      fields: ['ctv_p', 'pubtran_p', 'bicycle_p', 'walk_p', 'other_p'] },
-    {
-      table: 'travel_time_to_work', 
-      fields: ['mlt15_p', 'm15_30_p', 'm30_45_p', 'm45_60_p', 'm60ovr_p'] },
-    {
-      table: 'vehicles_per_household', 
-      fields: ['c0_p', 'c1_p', 'c2_p', 'c3p_p'] }
-    ]},
-
-  economy: { category: 'economy',
-    data: [
-    {
-      table: 'poverty_by_household_type', 
-      fields: ['pov_hh', 'pov_hh_p'] },
-    {
-      table: 'unemployment', 
-      fields: ['tot_lf', 'emp_lf', 'unemp_num', 'unemp_rt'] }
-    ]},
-
-  housing: { category: 'housing',
-    data: [
-    {
-      table: 'housing_cost_burden', 
-      fields: ['cb_3050_p', 'cb_50_p'] },
-    {
-      table: 'rent', 
-      fields: ['med_c_r'] },
-    {
-      table: 'housing_tenure', 
-      fields: ['sf_p', 'mf_p', 'oth_p', 'r_hu_p'] }
-    ]},
-
-  demographics: { category: 'demographics',
-    data: [
-    {
-      table: 'mobility_in_migration', 
-      fields: ['same_p', 'diff_p', 'abroad_p'] }
-    ]},
-
-  education: { category: 'education',
-    data: [
-    {
-      table: 'educational_attainment_25_years', 
-      fields: ['lths_p', 'hs_p', 'some_c_p', 'assocba_p', 'prof_p'] }
-    ]},
-}
-
-
-module.exports = { report_sets: report_sets }
-},{}],3:[function(require,module,exports){
-var QueryManager = require('./query_manager')
-
-var get_topics = function (callback) {
-  // console.log('DataManager#get_topics')
-  var categories = []
-
-  QueryManager.meta('tabular', 'list', 'verbose', function(data) { 
-    // console.log( 'QueryManager#meta with data: ' + data )
-    
-    _.forEach(data, function (table) {
-      categories.push(table['category']) })
-    if (callback) { callback( _.unique(categories) ) }
-  })
-}
-
-
-var get_tables = function (category, callback) {
-  // console.log( 'DataManager#get_tables' )
-  var tables = []
-
-  QueryManager.meta('tabular', 'list', 'verbose', function(data) { 
-    // console.log( 'QueryManager#meta with data: ' + data )
-    _.forEach(data, function (table) {
-      if ( table['category'] === category ){
-        tables.push( table )
-      }
-    })
-    if (callback) { callback(tables) }
-  })
-}
-
-
-var get_fields = function (args) {
-  // console.log('DataManager#get_fields')
-  var table    = args['table'],
-      callback = args['callback']
-  
-  QueryManager.meta('tabular', table, 'meta', function(data) { 
-    if (callback) { callback( data.attributes ) }
-  })
-}
-
-var get_geographies = function (args) {
-  // console.log('DataManager#get_fields')
-  var table    = args['table'],
-      callback = args['callback']
-  
-  QueryManager.meta('tabular', table, 'meta', function(data) { 
-    if (callback) { callback( data.summary_levels ) }
-  })
-}
-
-
-var get = function (args) {
-  // console.log('DataManager#get')
-  // console.log('GET'+ args['data'] +' where '+ args['from'] +' = '+ args['using'] +'.' )
-}
-
-
-
-module.exports = {
-    get_topics:  get_topics
-  , get_tables:  get_tables
-  , get_fields:  get_fields
-  , get_geographies: get_geographies 
-}
-},{"./query_manager":8}],4:[function(require,module,exports){
 /*
 
 LegendManager
@@ -6821,53 +6699,66 @@ module.exports = {
     set_legend: set_legend
   , style: style
 }
-},{}],5:[function(require,module,exports){
+},{}],3:[function(require,module,exports){
 
 
 var Mediator      = require('./mediator').mediator
 
-var DataManager   = require('./data_manager')
 var MapManager    = require('./map_manager')
 var QueryManager  = require('./query_manager')
 var SelectManager = require('./select_manager')
+var StateManager  = require('./state_manager')
 var ReportManager = require('./report_manager')
 var ZoomManager   = require('./zoom_manager')
 
 
 QueryManager.topics( function (topics) {
-  $('select#topic').html(
-    SelectManager.options_html(topics) )
-  $('select#report-topic').html(
-    SelectManager.options_html(topics) )
+  $('select#topic').html(        SelectManager.options_html(topics) )
+  $('select#report-topic').html( SelectManager.options_html(topics) )
 })
 
 
 $('select').on('change', function() {
   SelectManager.populate_next( $(this) )
+  console.log(StateManager.get_params())
+})
+
+
+$('select#topic').on('change', function () {
+  StateManager.update_params({ topic: $(this).val() })
+})
+
+
+$('select#table').on('change', function () {
+  StateManager.update_params({ table: $(this).val() })
 })
 
 
 $('select#field').on('change', function () {  
-  StateManager.update_params({
-      field: $(this).val()
-    , geography: $($('select#geography option')[1])
-  })
+  // Get the value of the first summary level
+  // TODO: or the value of the summary level appropriate for the zoom
+  var geography = $($('select#geography option')[1]).val()
+  StateManager.update_params({ field: $(this).val(), geography: geography })
+  
+  $('select#geography').val( geography )   // Change the box to reflect
+  $("select#geography").trigger('change')  // Set as text
+
   MapManager.update_map()
 })
 
 
 $('select#geography').on('change', function () {
-  StateManager.update_params({ geography: geo.val() })
-  MapManager.update_map() 
+  StateManager.update_params({ geography: $(this).val() })
+  MapManager.update_map()
 })
-
-
 
 
 var map = MapManager.init_map()
 MapManager.establish_map(map)
+StateManager.update_params({ map: map, zoom: map._zoom })
 
 
+// TODO: these should be inside MapManager
 map.on('draw:created', function (drawing) {
   MapManager.set_study_area({ study_area: drawing.layer })  })
 
@@ -6877,43 +6768,28 @@ map.on('draw:edited', function (drawing) {
 
 
 map.on('moveend', function () {
-  MapManager.set_overlay({})  })
+  MapManager.update_map()  })
 
 
 map.on('zoomend', function () {
-  console.log( 'zoom: ' + map.getZoom() )
+  var summary_level = ZoomManager.zoom_to_summary_level( this._zoom )
+  // TODO: CAUTION: summary_level and geography might be the same
+  StateManager.update_params({  zoom:          this._zoom
+                              , summary_level: summary_level  })
 
-  var set_zoom_selects = function (sumlevs) {
-    console.log('summary levels: ' + sumlevs)
-    var value = ZoomManager.appropriate_sumlev(map, sumlevs)
-    console.log(value)
-    $("select#geography").val(value)
-    $("select#geography").trigger('change')
-  }
+  $("select#geography").val( summary_level ) // Set geography select
+  $("select#geography").trigger('change')    // Set as text
 
-  var table = $('select#table').val()
-  console.log('table: ' + table)
-  DataManager.get_geographies({
-    table: table,
-    callback: set_zoom_selects
-  })
+  MapManager.update_map()
 })
 
+
+// FACTOR OUT
 $('select#field, select#geography').on('change', function() {
   var selected = $(this).find(':selected')
   selected = $(selected).text()
   $(this).next('a').html( selected )
   $(this).hide()
-  console.log('selected.length')
-  console.log(selected.length)
-  if(selected.length > 45){
-    console.log('======== longer')
-    console.log($('#title-bar a'))
-    $('#title-bar a').css('font-size-adjust', '0.3')
-  } else {
-    console.log('======== shorter')
-    $('#title-bar a').css('font-size-adjust', '0.0')
-  }
   if($(this).attr('id') !== 'geography') $('select#geography').trigger('change')
 })
 
@@ -6939,11 +6815,6 @@ $('#add-this-field').on('click', function() {
   console.log('the click')
   ReportManager.request_field()
 })
-
-
-
-// ReportManager.display_report(report.content)
-// ReportManager.display_single_field( $("#report #transportation .fields"), {title: 'Test', value: '12'} )
 
 
 
@@ -6981,49 +6852,67 @@ $('#add-this-field').on('click', function() {
 // Mediator.subscribe( 'select_changed', SelectManager.populate_next( args ) )
 // Mediator.subscribe( 'field_changed',  MapManager.change_field( field ) )
 
-},{"./data_manager":3,"./map_manager":6,"./mediator":7,"./query_manager":8,"./report_manager":9,"./select_manager":10,"./zoom_manager":11}],6:[function(require,module,exports){
-/*
+},{"./map_manager":4,"./mediator":5,"./query_manager":6,"./report_manager":8,"./select_manager":9,"./state_manager":10,"./zoom_manager":11}],4:[function(require,module,exports){
+//
+// module MapManager
+//
+//
 
-MapManager
+var StateManager = require('./state_manager')
+  , QueryManager = require('./query_manager')
 
-
-
-*/
-
-var LegendManager = require('./legend_manager')
 
 var table, field, geography, study_area
-  , mapc_url     = 'http://tiles.mapc.org/basemap/{z}/{x}/{y}.png'
-  , mapc_attrib  = 'Tiles by <a href="http://www.mapc.org/">Metropolitan Area Planning Council</a>.'
-  , tiles        = L.tileLayer( mapc_url, { attribution: mapc_attrib } )
-  , extent_layer = new L.layerGroup()
-  , study_layer  = new L.featureGroup()
+  , mapc_url      = 'http://tiles.mapc.org/basemap/{z}/{x}/{y}.png'
+  , mapc_attrib   = 'Tiles by <a href="http://www.mapc.org/">Metropolitan Area Planning Council</a>.'
+  , tiles         = L.tileLayer( mapc_url, { attribution: mapc_attrib } )
+  , extent_layer  = new L.layerGroup()
+  , study_layer   = new L.featureGroup()
   , drawing_layer = new L.featureGroup()
   , base_layers  = { 
       "MAPC Basemap": tiles }
   , over_layers  = {
       "Map Extent": extent_layer,
-      "Study Area": study_layer,
-      "Drawing": drawing_layer }
+      "Study Area": drawing_layer }
+
+var LegendManager = require('./legend_manager')
+  , draw_color    = '#5597A7'
+  , draw_options  = {
+                      position: 'topleft',
+                      draw: {
+                      
+                        polygon: {
+                            title: 'Draw a study area polygon.'
+                          , allowIntersection: false
+                          , drawError: {
+                                color: '#b00b00'
+                              , timeout: 1000
+                              , message: "Sorry! We can't handle that geometry."
+                            },
+                          shapeOptions: {
+                            color: draw_color
+                          },
+                          showArea: true
+                        },
+                        
+                        rectangle: {
+                          title: 'Draw a rectangular study area.',
+                          shapeOptions: {
+                            color: draw_color
+                          }
+                        },
+                        
+                        circle:   false,
+                        marker:   false,
+                        polyline: false,
+                      },
+                      
+                      edit: { featureGroup: drawing_layer }
+                    }
 
 
-var layer_control = L.control.layers(base_layers, over_layers)
-  , draw_control = new L.Control.Draw({
-      draw: {
-        position: 'topleft',
-        polygon: {
-          title: 'Draw your neighborhood!',
-          allowIntersection: false,
-          drawError: {
-            color: '#b00b00',
-            timeout: 1000 },
-          shapeOptions: {
-            color: '#2255BB' },
-          showArea: true },
-        polyline: false,
-        marker: false },
-      edit: {
-        featureGroup: drawing_layer } });
+var layer_control = L.control.layers( base_layers, over_layers )
+  , draw_control = new L.Control.Draw( draw_options )
 
 
 var map = L.map('map', {
@@ -7049,8 +6938,89 @@ var establish_map = function (map) {
 
 
 
+
+
+
+
+var update_map = function () {
+  console.log('update map')
+  if ( StateManager.can_get_extent() ) {
+    update_extent()
+
+    if ( StateManager.can_get_study_area() ) {
+      update_study_area() }
+  }
+}
+
+
+var update_extent = function () {
+  // TODO: geo_params
+  console.log('update extent')
+  bounds = L.rectangle( map.getBounds() ).toGeoJSON()
+  QueryManager.geo_query( StateManager.geo_params(), bounds, function (layer) {
+    replace_layer( extent_layer, { using: layer } )
+    // LegendManager.refresh()
+  })
+}
+
+
+var update_study_area = function () {
+  console.log('update study area')
+      
+  QueryManager.geo_query( StateManager.geo_params(), study_area.toGeoJSON(), function (layer) {
+    replace_layer( study_area_layer, { using: layer } )
+    update_drawing( layer )  
+  })
+}
+
+
+var update_drawing = function (layer) {
+  // var poly_bounds = layer.outer_bounds HOW
+  replace_layer( drawing_layer, { using: poly_bounds } )
+}
+
+
+var replace_layer = function (layer_to_replace, args) {
+  layer_to_replace.clearLayers()
+  layer_to_replace.addLayer( make_styled_geojson( args.using ) )
+}
+
+
+var make_styled_geojson = function (data) {
+  // TODO: return L.geoJson( data, { style: style_or_default() } )
+  return L.geoJson( data, { style: default_style } )
+}
+
+
+var style_or_default = function () {
+  return LegendManager.style() || default_style
+}
+
+
+var default_style = function (feature) {
+  return {
+      fillColor: '#FFF'
+    , fillOpacity: 0.45
+    , weight: 1
+    , color: '#BBB'
+    , opacity: 1
+  }
+}
+
+/*
+
+MapManager
+
+
+
+*/
+
+
+
+
+
 var set_overlay = function(args) {
-  console.log('global#set_overlay')
+  console.log('MapManager#set_overlay')
   if( args.table )     { table     = args.table }
   if( args.field )     { field     = args.field }
   if( args.geography ) { geography = args.geography }
@@ -7069,16 +7039,8 @@ var set_overlay = function(args) {
 
 
 var set_study_area = function(args){
-  console.log('global#set_study_area')
-  if( args.table )      { table      = args.table }
-  if( args.field )      { field      = args.field }
-  if( args.geography )  { geography  = args.geography }
-  if( args.study_area ) { study_area = args.study_area }
-
-  if (typeof table === 'undefined' || typeof field === 'undefined' || typeof geography === 'undefined'){
-    console.log('throw error')
-  }
-
+  console.log('MapManager#set_study_area')
+  
   drawing_layer.addLayer( study_area )
 
   get_layer({
@@ -7107,35 +7069,13 @@ module.exports = {
   , set_overlay:    set_overlay
   , set_study_area: set_study_area
   , has_study_area: has_study_area
+  , update_map:     update_map
 }
 
 // private
 
-var get_layer = function(args) {
-  console.log('global#get_layer')
-  
-  var base_url = 'http://localhost:2474/geographic/spatial/'
-    , url = base_url + args.geography + '/tabular/' + args.table + '/' + field + '/intersect'
-    , polygon = args.polygon
 
-  console.log(url)
-
-  $.ajax({
-      url: url
-    , type: 'POST'
-    , data: args.polygon.geometry
-    , success: function (data) {
-        console.log('global#get_layer: success. Now, the data:')
-        console.log(data)
-        LegendManager.set_legend({ map: map, field: field, data: data })
-        args.add_to.clearLayers()
-        args.add_to.addLayer( L.geoJson( data, { style: LegendManager.style } ) )
-      }
-    , error: function(e) {
-        console.log("ERROR")
-        console.log(e) } })
-}
-},{"./legend_manager":4}],7:[function(require,module,exports){
+},{"./legend_manager":2,"./query_manager":6,"./state_manager":10}],5:[function(require,module,exports){
 /*
   
   Mediator implementation
@@ -7174,9 +7114,10 @@ var mediator = (function(){
 }());
 
 module.exports = { mediator: mediator }
-},{}],8:[function(require,module,exports){
+},{}],6:[function(require,module,exports){
 var _ = require('lodash')
 var api_base = 'http://localhost:2474/'
+var geo_base = 'http://localhost:2474/geographic/spatial/'
 
 var get_site = function() { return api_base }
 
@@ -7225,14 +7166,32 @@ var undefined_or_empty = function (thing) {
 }
 
 
-// geographies
+var geo_query = function ( args, polygon, callback ) {
+  var url = geo_base + args.geography + '/tabular/' + args.table + '/' + args.field + '/intersect'
+    , polygon = polygon.geometry
 
+  console.log(url)
+
+  $.ajax({
+      url:   url
+    , type: 'POST'
+    , data:  polygon
+    , success: function (data) {
+        console.log('geo_query was successful(!) and returned:')
+        console.log(data)
+        if (callback) { callback(data) }
+      }
+    , error: function(e) {
+        console.log("ERROR")
+        console.log(e) } })
+}
 
 module.exports = { get_site: get_site
                  , topics:   topics
-                 , tables:   tables   
-                 , fields:   fields   
-                 , geographies: geographies   }
+                 , tables:   tables
+                 , fields:   fields
+                 , geo_query:   geo_query
+                 , geographies: geographies }
 
 
 
@@ -7266,9 +7225,64 @@ var request = function (args) {
   })
 }
 
-},{"lodash":1}],9:[function(require,module,exports){
+},{"lodash":1}],7:[function(require,module,exports){
+report_sets = {
+  transportation: { category: 'transportation',
+    data: [
+    {
+      table: 'means_transportation_to_work_by_residence', 
+      fields: ['ctv_p', 'pubtran_p', 'bicycle_p', 'walk_p', 'other_p'] },
+    {
+      table: 'travel_time_to_work', 
+      fields: ['mlt15_p', 'm15_30_p', 'm30_45_p', 'm45_60_p', 'm60ovr_p'] },
+    {
+      table: 'vehicles_per_household', 
+      fields: ['c0_p', 'c1_p', 'c2_p', 'c3p_p'] }
+    ]},
+
+  economy: { category: 'economy',
+    data: [
+    {
+      table: 'poverty_by_household_type', 
+      fields: ['pov_hh', 'pov_hh_p'] },
+    {
+      table: 'unemployment', 
+      fields: ['tot_lf', 'emp_lf', 'unemp_num', 'unemp_rt'] }
+    ]},
+
+  housing: { category: 'housing',
+    data: [
+    {
+      table: 'housing_cost_burden', 
+      fields: ['cb_3050_p', 'cb_50_p'] },
+    {
+      table: 'rent', 
+      fields: ['med_c_r'] },
+    {
+      table: 'housing_tenure', 
+      fields: ['sf_p', 'mf_p', 'oth_p', 'r_hu_p'] }
+    ]},
+
+  demographics: { category: 'demographics',
+    data: [
+    {
+      table: 'mobility_in_migration', 
+      fields: ['same_p', 'diff_p', 'abroad_p'] }
+    ]},
+
+  education: { category: 'education',
+    data: [
+    {
+      table: 'educational_attainment_25_years', 
+      fields: ['lths_p', 'hs_p', 'some_c_p', 'assocba_p', 'prof_p'] }
+    ]},
+}
+
+
+module.exports = { report_sets: report_sets }
+},{}],8:[function(require,module,exports){
 var report = {}
-  , categories = require('./config.js').report_sets
+  , categories = require('./report_config.js').report_sets
   , QueryManager = require('./query_manager')
 
 
@@ -7437,9 +7451,9 @@ var geojson_to_keys = function(geojson) {
   return _.map(geojson.features, function (feature) {
     return feature.properties.key })
 }
-},{"./config.js":2,"./query_manager":8}],10:[function(require,module,exports){
-var DataManager  = require('./data_manager')
-  , QueryManager = require('./query_manager')
+},{"./query_manager":6,"./report_config.js":7}],9:[function(require,module,exports){
+var QueryManager = require('./query_manager')
+  , StateManager = require('./state_manager')  
 
 
 var options_html = function (collection) {
@@ -7464,63 +7478,6 @@ var option_tag = function (title, value) {
 
 
 
-
-var generate_options = function (pairs, opts) {
-  console.log("PAIRS")
-  
-  var opts        = opts || {}
-    , placeholder = opts['placeholder'] || "Choose one"
-    , text        = opts['text']
-    , value       = opts['value']
-    , options     = []
-  
-  if (_.isString(pairs[0])) {     // TODO: lazy
-    pairs = pairs_from_array(pairs)
-    console.log(pairs) }
-  else if (_.isObject(pairs[0])) {
-    pairs = pairs_from_objects({ objects: pairs, text: text, value: value }) 
-    console.log(pairs) 
-  }
-
-  options.push('<option value="">' + placeholder + '</option>') // creates placeholder
-  options.push( options_from_hash(pairs, opts) )                // adds options to array
-  return options.join("\n")                                     // joins array of options to make html
-}
-
-
-// These standardize pairs for generating select boxes.
-
-var pairs_from_array = function (array) {
-  var pairs = {}
-  _.forEach(array, function(element) { pairs[element] = element })
-  return pairs }
-
-
-var pairs_from_objects = function (args) {
-  var objects = args['objects']
-    , text    = args['text']
-    , value   = args['value']
-    , pairs   = []
-
-  _.forEach(objects, function(object) { 
-    pairs[object[text]] = object[value] })
-
-  return pairs }
-
-// end
-
-
-var options_from_hash = function (pairs, opts) {
-  var options = []
-    , selected = ''
-  _.forIn(pairs, function(value, key){
-    options.push('<option value="'+ value +'" '+ selected +'>'+ key +'</option>')
-  });
-  return options
-}
-
-
-
 // TODO: get the select box to know how to get their own values
 
 var populate_next = function (obj) {
@@ -7541,6 +7498,7 @@ var populate_next = function (obj) {
       })
       QueryManager.geographies(value,  function (collection) {
         $('select#geography').html( options_html(collection) )
+        StateManager.update_params({ summary_levels: collection })
       })
       break;
   }
@@ -7548,25 +7506,128 @@ var populate_next = function (obj) {
 
 
 module.exports = {
-    options_html:      options_html
-  , generate_options:  generate_options
-  , populate_next:     populate_next
+    options_html:  options_html
+  , populate_next: populate_next
 }
-},{"./data_manager":3,"./query_manager":8}],11:[function(require,module,exports){
+},{"./query_manager":6,"./state_manager":10}],10:[function(require,module,exports){
+//
+// module StateManager
+//
+//
+
+_ = require('lodash')
+var params = {}
+  , requirements = ['table', 'topic', 'field', 'geography', 'map']
+//   , has_drawing = false
+
+
+var get_requirements = function () {
+  return requirements
+}
+
+
+var get_params = function () {
+  return params
+}
+
+var geo_params = function () {
+  var geo = { table:     params.table
+            , field:     params.field
+            , geography: params.geography }
+  console.log(geo)
+  return geo
+}
+
+
+var update_params = function (args) {
+  var args = args
+  if ( _.isArray(args) ) { args = merge_args(args) }
+  _.forIn(args, function(value, key){
+    params[key] = value
+  })
+}
+
+
+var merge_args = function (args) {
+  var hash = {}
+  _.forEach(args, function (arg) {
+    if ( _.isObject(arg) ) { _.merge(hash, arg) }
+  })
+  return hash
+}
+
+
+var reset_params = function () {
+  params = {}
+}
+
+
+var clear_requirements = function () {
+  requirements = undefined
+}
+
+
+var can_get_extent = function () {
+  throw_if_no_requirements()
+  return meets_requirements(requirements, _.keys(params))
+}
+
+
+var meets_requirements = function (reqs, params) {
+  var it_does = false
+    , count  = 0
+
+  _.forEach(reqs, function (req) {
+    if (params.indexOf(req) != -1) { count = count + 1 } })
+  
+  if (count === reqs.length) { it_does = true }
+  return it_does
+}
+
+
+var throw_if_no_requirements = function () {
+  if (_.isUndefined(requirements) || requirements.length === 0) {
+    throw new Error('StateManager has no requirements.')
+  }
+}
+
+
+var can_get_study_area = function () {
+  return params.drawing && can_get_extent()
+}
+
+
+module.exports = {
+    update_params:      update_params
+  , reset_params:       reset_params
+  , get_params:         get_params
+  , geo_params:         geo_params
+  , get_requirements:   get_requirements
+  , clear_requirements: clear_requirements
+  , can_get_extent:     can_get_extent     
+  , can_get_study_area: can_get_study_area }
+},{"lodash":1}],11:[function(require,module,exports){
+var StateManager = require('./state_manager.js')
 
 var zoom_config = {
       8:  'municipality'
     , 12: ['census_tract', 'school_district']
-    , 15: 'census_blockgroup' }
+    , 15: 'census_blockgroup'
+}
 
+
+var zoom_to_summary_level = function (zoom) {
+  var summary_levels = StateManager.get_params().summary_levels
+  console.log(summary_levels[0].data.value)
+  return summary_levels[0].data.value
+}
 
 var arrayify = function (hash) {
   console.log('ZoomManager#arrayify')
   var max   = _.max( _.map(_.keys(hash), function (e) { return _.parseInt(e) } ))
     , array = Array(max) // TODO: or, map.maxZoom()
 
-  _.each(hash, function(value, key) {
-    array[key] = value })
+  _.each(hash, function(value, key) { array[key] = value })
   console.log(array)
   return array
 }
@@ -7605,7 +7666,7 @@ var appropriate_sumlev = function (map, sumlevs) {
 }
 
 module.exports = {
-  appropriate_sumlev: appropriate_sumlev
+  zoom_to_summary_level: zoom_to_summary_level
 }
-},{}]},{},[5])
+},{"./state_manager.js":10}]},{},[3])
 ;

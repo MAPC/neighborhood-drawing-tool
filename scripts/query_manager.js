@@ -1,5 +1,6 @@
 var _ = require('lodash')
 var api_base = 'http://localhost:2474/'
+var geo_base = 'http://localhost:2474/geographic/spatial/'
 
 var get_site = function() { return api_base }
 
@@ -48,14 +49,32 @@ var undefined_or_empty = function (thing) {
 }
 
 
-// geographies
+var geo_query = function ( args, polygon, callback ) {
+  var url = geo_base + args.geography + '/tabular/' + args.table + '/' + args.field + '/intersect'
+    , polygon = polygon.geometry
 
+  console.log(url)
+
+  $.ajax({
+      url:   url
+    , type: 'POST'
+    , data:  polygon
+    , success: function (data) {
+        console.log('geo_query was successful(!) and returned:')
+        console.log(data)
+        if (callback) { callback(data) }
+      }
+    , error: function(e) {
+        console.log("ERROR")
+        console.log(e) } })
+}
 
 module.exports = { get_site: get_site
                  , topics:   topics
-                 , tables:   tables   
-                 , fields:   fields   
-                 , geographies: geographies   }
+                 , tables:   tables
+                 , fields:   fields
+                 , geo_query:   geo_query
+                 , geographies: geographies }
 
 
 

@@ -1,45 +1,63 @@
-/*
+//
+// module MapManager
+//
+//
 
-MapManager
+var StateManager = require('./state_manager')
+  , QueryManager = require('./query_manager')
 
-
-
-*/
-
-var LegendManager = require('./legend_manager')
 
 var table, field, geography, study_area
-  , mapc_url     = 'http://tiles.mapc.org/basemap/{z}/{x}/{y}.png'
-  , mapc_attrib  = 'Tiles by <a href="http://www.mapc.org/">Metropolitan Area Planning Council</a>.'
-  , tiles        = L.tileLayer( mapc_url, { attribution: mapc_attrib } )
-  , extent_layer = new L.layerGroup()
-  , study_layer  = new L.featureGroup()
+  , mapc_url      = 'http://tiles.mapc.org/basemap/{z}/{x}/{y}.png'
+  , mapc_attrib   = 'Tiles by <a href="http://www.mapc.org/">Metropolitan Area Planning Council</a>.'
+  , tiles         = L.tileLayer( mapc_url, { attribution: mapc_attrib } )
+  , extent_layer  = new L.layerGroup()
+  , study_layer   = new L.featureGroup()
   , drawing_layer = new L.featureGroup()
   , base_layers  = { 
       "MAPC Basemap": tiles }
   , over_layers  = {
       "Map Extent": extent_layer,
-      "Study Area": study_layer,
-      "Drawing": drawing_layer }
+      "Study Area": drawing_layer }
+
+var LegendManager = require('./legend_manager')
+  , draw_color    = '#5597A7'
+  , draw_options  = {
+                      position: 'topleft',
+                      draw: {
+                      
+                        polygon: {
+                            title: 'Draw a study area polygon.'
+                          , allowIntersection: false
+                          , drawError: {
+                                color: '#b00b00'
+                              , timeout: 1000
+                              , message: "Sorry! We can't handle that geometry."
+                            },
+                          shapeOptions: {
+                            color: draw_color
+                          },
+                          showArea: true
+                        },
+                        
+                        rectangle: {
+                          title: 'Draw a rectangular study area.',
+                          shapeOptions: {
+                            color: draw_color
+                          }
+                        },
+                        
+                        circle:   false,
+                        marker:   false,
+                        polyline: false,
+                      },
+                      
+                      edit: { featureGroup: drawing_layer }
+                    }
 
 
-var layer_control = L.control.layers(base_layers, over_layers)
-  , draw_control = new L.Control.Draw({
-      draw: {
-        position: 'topleft',
-        polygon: {
-          title: 'Draw your neighborhood!',
-          allowIntersection: false,
-          drawError: {
-            color: '#b00b00',
-            timeout: 1000 },
-          shapeOptions: {
-            color: '#2255BB' },
-          showArea: true },
-        polyline: false,
-        marker: false },
-      edit: {
-        featureGroup: drawing_layer } });
+var layer_control = L.control.layers( base_layers, over_layers )
+  , draw_control = new L.Control.Draw( draw_options )
 
 
 var map = L.map('map', {
@@ -65,8 +83,89 @@ var establish_map = function (map) {
 
 
 
+
+
+
+
+var update_map = function () {
+  console.log('update map')
+  if ( StateManager.can_get_extent() ) {
+    update_extent()
+
+    if ( StateManager.can_get_study_area() ) {
+      update_study_area() }
+  }
+}
+
+
+var update_extent = function () {
+  // TODO: geo_params
+  console.log('update extent')
+  bounds = L.rectangle( map.getBounds() ).toGeoJSON()
+  QueryManager.geo_query( StateManager.geo_params(), bounds, function (layer) {
+    replace_layer( extent_layer, { using: layer } )
+    // LegendManager.refresh()
+  })
+}
+
+
+var update_study_area = function () {
+  console.log('update study area')
+      
+  QueryManager.geo_query( StateManager.geo_params(), study_area.toGeoJSON(), function (layer) {
+    replace_layer( study_area_layer, { using: layer } )
+    update_drawing( layer )  
+  })
+}
+
+
+var update_drawing = function (layer) {
+  // var poly_bounds = layer.outer_bounds HOW
+  replace_layer( drawing_layer, { using: poly_bounds } )
+}
+
+
+var replace_layer = function (layer_to_replace, args) {
+  layer_to_replace.clearLayers()
+  layer_to_replace.addLayer( make_styled_geojson( args.using ) )
+}
+
+
+var make_styled_geojson = function (data) {
+  // TODO: return L.geoJson( data, { style: style_or_default() } )
+  return L.geoJson( data, { style: default_style } )
+}
+
+
+var style_or_default = function () {
+  return LegendManager.style() || default_style
+}
+
+
+var default_style = function (feature) {
+  return {
+      fillColor: '#FFF'
+    , fillOpacity: 0.45
+    , weight: 1
+    , color: '#BBB'
+    , opacity: 1
+  }
+}
+
+/*
+
+MapManager
+
+
+
+*/
+
+
+
+
+
 var set_overlay = function(args) {
-  console.log('global#set_overlay')
+  console.log('MapManager#set_overlay')
   if( args.table )     { table     = args.table }
   if( args.field )     { field     = args.field }
   if( args.geography ) { geography = args.geography }
@@ -85,16 +184,8 @@ var set_overlay = function(args) {
 
 
 var set_study_area = function(args){
-  console.log('global#set_study_area')
-  if( args.table )      { table      = args.table }
-  if( args.field )      { field      = args.field }
-  if( args.geography )  { geography  = args.geography }
-  if( args.study_area ) { study_area = args.study_area }
-
-  if (typeof table === 'undefined' || typeof field === 'undefined' || typeof geography === 'undefined'){
-    console.log('throw error')
-  }
-
+  console.log('MapManager#set_study_area')
+  
   drawing_layer.addLayer( study_area )
 
   get_layer({
@@ -123,31 +214,8 @@ module.exports = {
   , set_overlay:    set_overlay
   , set_study_area: set_study_area
   , has_study_area: has_study_area
+  , update_map:     update_map
 }
 
 // private
 
-var get_layer = function(args) {
-  console.log('global#get_layer')
-  
-  var base_url = 'http://localhost:2474/geographic/spatial/'
-    , url = base_url + args.geography + '/tabular/' + args.table + '/' + field + '/intersect'
-    , polygon = args.polygon
-
-  console.log(url)
-
-  $.ajax({
-      url: url
-    , type: 'POST'
-    , data: args.polygon.geometry
-    , success: function (data) {
-        console.log('global#get_layer: success. Now, the data:')
-        console.log(data)
-        LegendManager.set_legend({ map: map, field: field, data: data })
-        args.add_to.clearLayers()
-        args.add_to.addLayer( L.geoJson( data, { style: LegendManager.style } ) )
-      }
-    , error: function(e) {
-        console.log("ERROR")
-        console.log(e) } })
-}
