@@ -1,6 +1,7 @@
 var _ = require('lodash')
-var api_base = 'http://localhost:2474/'
-var geo_base = 'http://localhost:2474/geographic/spatial/'
+  , api_base = 'http://localhost:2474/'
+  , geo_base = 'http://localhost:2474/geographic/spatial/'
+  , jqXHR
 
 var get_site = function() { return api_base }
 
@@ -55,7 +56,11 @@ var geo_query = function ( args, polygon, callback ) {
 
   console.log(url)
 
-  $.ajax({
+  if (jqXHR && jqXHR.readyState != 4){
+    jqXHR.abort()
+  }
+
+  jqXHR = $.ajax({
       url:   url
     , type: 'POST'
     , data:  polygon
